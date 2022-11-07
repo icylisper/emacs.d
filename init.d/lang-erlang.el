@@ -1,0 +1,18 @@
+(setq load-path (cons "~/runtime/erlang/emacs" load-path))
+(require 'erlang-start)
+(setq erlang-root-dir "~/runtime/erlang")
+(setq exec-path (cons "~/runtime/erlang/bin" exec-path))
+(setq erlang-man-root-dir "~/runtime/erlang/bin/man")
+
+(use-package erlang
+  :mode (("\\.erl?$" . erlang-mode)
+	 ("rebar\\.config$" . erlang-mode)
+	 ("relx\\.config$" . erlang-mode)
+	 ("sys\\.config\\.src$" . erlang-mode)
+	 ("sys\\.config$" . erlang-mode)
+	 ("\\.config\\.src?$" . erlang-mode)
+	 ("\\.config\\.script?$" . erlang-mode)
+	 ("\\.hrl?$" . erlang-mode)
+	 ("\\.app?$" . erlang-mode)
+	 ("\\.app.src?$" . erlang-mode)
+	 ("\\Emakefile" . erlang-mode)))
