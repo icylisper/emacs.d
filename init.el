@@ -25,7 +25,6 @@
 (add-to-list 'custom-theme-load-path "~/lib/emacs/themes/base16-emacs/build")
 (set-face-attribute 'variable-pitch nil :font "inconsolata" :height 172)
 (set-frame-font "hasklig 14" nil t)
-;;(set-frame-font "monaco 12" nil t)
 
 ;; basic lib
 (el-get-bundle use-package)
@@ -294,106 +293,12 @@
   :config
   (display-battery-mode))
 
-;; completion
-
-(ido-mode -1)
-
-(use-package imenu
-  :config
-  (setq imenu-auto-rescan t)
-  (defun imenu--use-package ()
-    (setq imenu-generic-expression
-          '((nil
-             "\\(^\\s-*(use-package +\\)\\(\\_<.+\\_>\\)" 2))))
-  (add-hook 'emacs-lisp-mode-hook #'imenu--use-package)
-  :bind
-  (("C-c j" . imenu)))
-
-
-;; ace-jump-mode
 
 (el-get-bundle ace-jump-mode)
 (use-package ace-jump-mode
   :init
   (autoload 'ace-jum-mode "ace-jump-mode" "Emacs quick move" t)
   (bind-key (kbd "C-c i") 'ace-jump-mode))
-
-
-(use-package hippie-exp
-  :init
-  ;; force hippie-expand completions to be case-sensitive
-  (defadvice hippie-expand (around hippie-expand-case-fold activate)
-    "Try to do case-sensitive matching (not effective with all functions)."
-    (let ((case-fold-search nil))
-      ad-do-it))
-  :config
-  (setq hippie-expand-try-functions-list
-	'(try-expand-dabbrev
-	  try-expand-dabbrev-all-buffers
-	  try-expand-dabbrev-from-kill
-	  try-complete-file-name-partially
-	  try-complete-file-name
-	  try-expand-all-abbrevs
-	  try-expand-list
-	  try-expand-line
-	  try-complete-lisp-symbol-partially
-	  try-complete-lisp-symbol)))
-
-(defun smart-tab ()
-  (interactive)
-  (if (minibufferp)
-      (unless (minibuffer-complete)
-        (hippie-expand nil))
-    (if mark-active
-        (indent-region (region-beginning)
-                       (region-end))
-      (if (looking-at "\\_>")
-         (hippie-expand nil)
-        (indent-for-tab-command)))))
-(global-set-key (kbd "TAB") 'smart-tab)
-
-
-;; dired
-
-(el-get-bundle wdired)
-(use-package wdired
-  :bind (:map dired-mode-map
-	      ("r" . wdired-change-to-wdired-mode))
-  :config
-  (setq directory-sep-char ?/)
-  (add-hook 'dired-load-hook
-	    (lambda ()
-	      (load "dired-x")
-	      (setq directory-sep-char ?/
-		    wdired-allow-to-change-permissions t
-		    dired-backup-overwrite t)))
-  (add-hook 'dired-mode-hook #'highline-mode-on))
-
-(el-get-bundle dired-details)
-(use-package dired-details
-  :init
-  (dired-details-install)
-  :config
-  (bind-key (kbd "C-x C-d") 'dired)
-  (setq dired-details-hidden-string ""
-	dired-dwim-target t))
-
-(el-get-bundle dired-hacks)
-(use-package dired-subtree
-  :bind (:map dired-mode-map
-	      ("<tab>" . dired-subtree-cycle)
-	      ("i" . dired-subtree-insert)
-	      ("k" . dired-subtree-remove))
-  :config
-  (setq dired-subtree-line-prefix
-	(lambda (depth) (make-string (* 2 depth) ?\s)))
-  (setq dired-subtree-use-backgrounds nil))
-
-(defun dired-lynx-keybindings ()
-  (define-key dired-mode-map [left]  'dired-up-directory)
-  (define-key dired-mode-map [right] 'dired-view-file))
-(add-hook 'dired-mode-hook 'dired-lynx-keybindings)
-(add-hook 'dired-mode-hook #'highline-mode-on)
 
 (el-get-bundle diasjorge/emacs-load-env-vars
   :name load-env-vars)
@@ -407,6 +312,8 @@
     (when (file-exists-p file)
       (load-file file))))
 
+(init! 'dired)
+(init! 'completion)
 (init! 'lang-cl)
 (init! 'lang-clojure)
 (init! 'lang-elisp)
@@ -419,14 +326,15 @@
 (init! 'lang-python)
 (init! 'lang-js)
 (init! 'lang-go)
+(init! 'lang-misc)
 (init! 'sexp)
-(init! 'format)
 (init! 'crypto)
 (init! 'org)
 (init! 'project)
 (init! 'sys-shell)
 (init! 'net-http)
-;;(init! 'net-mail)
+(init! 'net-mail)
 (init! 'net-ssh)
+(init! 'net-feed)
 
-;;(load-file "~/.emacs.d/icylisper.el")
+(load-file "~/.emacs.d/icylisper.el")
