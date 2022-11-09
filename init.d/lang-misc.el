@@ -20,3 +20,9 @@
 (use-package toml-mode
   :config
   (add-to-list 'auto-mode-alist '(".*\\.toml$" . any-ini-mode)))
+
+(el-get-bundle terraform-mode)
+(use-package terraform-mode)
+
+;; (el-get-bundle christophstockhusen/bigquery-mode
+;;   :name elfeed-org)
