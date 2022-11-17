@@ -26,3 +26,6 @@
 
 ;; (el-get-bundle christophstockhusen/bigquery-mode
 ;;   :name elfeed-org)
+
+(el-get-bundle protobuf-mode)
+(use-package protobuf-mode)
