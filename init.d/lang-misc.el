@@ -29,3 +29,6 @@
 
 (el-get-bundle protobuf-mode)
 (use-package protobuf-mode)
+
+(el-get-bundle xcezx/blockdiag-mode :blockdiag)
+(use-package blockdiag)
