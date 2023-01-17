@@ -9,6 +9,11 @@
 
 (setq css-indent-offset 2)
 
+(el-get-bundle leafOfTree/svelte-mode :name svelte-mode)
+(use-package svelte-mode
+  :config
+  (setq svelte-basic-offset 2))
+
 ;; solidity
 (el-get-bundle solidity-mode)
 (use-package solidity-mode)
