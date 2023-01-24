@@ -23,25 +23,20 @@
 	("C-c C-r" . cargo-process-run)))
 
 
-(defun imenu-rust-fn ()
-    (setq imenu-generic-expression
-          '((nil
-             "\\(^\\s-*(fn +\\)\\(\\_<.+\\_>\\)" 2))))
-
-(add-hook 'rust-mode-hook #'imenu-rust-fn)
-
-
 (el-get-bundle rustic)
 (el-get-bundle eglot)
 
 (use-package rustic
   :config
-  (setq rustic-lsp-client 'eglot
-	lsp-rust-server 'rust-analyzer
-	rustic-format-on-save nil
-	rustic-lsp-server 'rust-analyzer
-	rustic-flycheck-setup-mode-line-p nil
-	eglot-send-changes-idle-time (* 60 60))
+  (progn
+    ;; (setq rustic-lsp-client 'eglot
+    ;; 	  rustic-lsp-server 'rust-analyzer
+    ;; 	  lsp-rust-server 'rust-analyzer
+    ;; 	  eglot-send-changes-idle-time (* 60 60))
+    (setq rustic-lsp-client nil)
+    (setq rustic-format-on-save nil
+	  rustic-flycheck-setup-mode-line-p nil))
+
   (add-hook 'eglot-managed-mode-hook (lambda ()
 				       (eldoc-mode -1)
 				       (flymake-mode -1))))
