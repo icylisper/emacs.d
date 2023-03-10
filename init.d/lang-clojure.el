@@ -38,3 +38,14 @@
 (add-hook 'cider-repl-mode-hook 'paredit-mode)
 (add-hook 'clojure-mode-hook 'paredit-mode)
 (add-hook 'clojure-mode-hook 'rainbow-delimiters-mode)
+
+
+(el-get-bundle ericdallo/jet.el :name jet)
+
+(use-package jet)
+
+(defun jet-json-to-clipboard ()
+  (interactive)
+  (jet-to-clipboard (jet--thing-at-point) '("--from=json" "--to=edn")))
+
+(global-set-key (kbd "C-c j j e") 'copy-json-as-edn)
