@@ -13,7 +13,7 @@
 
 (el-get-bundle vspinu/sesman :name sesman)
 (el-get-bundle a)
-(el-get-bundle cider :checkout "v1.2.0")
+(el-get-bundle cider :checkout "v1.6.0")
 (el-get-bundle parseclj)
 
 (use-package cider
@@ -47,5 +47,3 @@
 (defun jet-json-to-clipboard ()
   (interactive)
   (jet-to-clipboard (jet--thing-at-point) '("--from=json" "--to=edn")))
-
-(global-set-key (kbd "C-c j j e") 'copy-json-as-edn)
