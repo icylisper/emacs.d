@@ -4,3 +4,5 @@ elpa
 var
 etc
 custom.el
+transient
+auto-save-list
