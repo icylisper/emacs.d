@@ -11,35 +11,25 @@
   :bind
   (("C-c j" . imenu)))
 
-(use-package hippie-exp
-  :init
-  ;; force hippie-expand completions to be case-sensitive
-  (defadvice hippie-expand (around hippie-expand-case-fold activate)
-    "Try to do case-sensitive matching (not effective with all functions)."
-    (let ((case-fold-search nil))
-      ad-do-it))
-  :config
-  (setq hippie-expand-try-functions-list
-	'(try-expand-dabbrev
-	  try-expand-dabbrev-all-buffers
-	  try-expand-dabbrev-from-kill
-	  try-complete-file-name-partially
-	  try-complete-file-name
-	  try-expand-all-abbrevs
-	  try-expand-list
-	  try-expand-line
-	  try-complete-lisp-symbol-partially
-	  try-complete-lisp-symbol)))
+;; completion read
 
-(defun smart-tab ()
-  (interactive)
-  (if (minibufferp)
-      (unless (minibuffer-complete)
-        (hippie-expand nil))
-    (if mark-active
-        (indent-region (region-beginning)
-                       (region-end))
-      (if (looking-at "\\_>")
-         (hippie-expand nil)
-        (indent-for-tab-command)))))
-(global-set-key (kbd "TAB") 'smart-tab)
+(setq completion-styles '(partial-completion substring)
+      completion-ignore-case t
+      read-buffer-completion-ignore-case t)
+
+;; completions buffer
+
+;; styles:  completion-styles-alist
+;; category defaults: completion-category-defaults
+;; catch-all completion-styles
+
+(setq completion-show-help nil
+      completions-format 'vertical
+      completion-category-overrides '((file (styles basic substring))
+				      (buffer (styles initials flex)
+					      (cycle . 3))))
+
+(icomplete-vertical-mode 1)
+;; (el-get-bundle oantolin/icomplete-vertical :name icomplete-vertical)
+
+;; (add-to-list 'completion-category-defaults '(cider (styles basic)))

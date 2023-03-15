@@ -2,6 +2,19 @@
   :name htmlize)
 (use-package htmlize)
 
+(use-package shrface
+  :config
+  (shrface-basic)
+  (shrface-trial)
+  (setq shr-inhibit-images t
+	shr-width 72
+	shr-use-fonts nil
+	shr-use-colors nil
+	shr-discard-aria-hidden t
+	shr-cookie-policy nil
+	shr-image-animate nil
+	shr-color-visible-luminance-min 80))
+
 (el-get-bundle ace-link)
 (use-package eww
   :preface
@@ -49,19 +62,6 @@
   (if (buffer-exists "*eww*")
       (switch-to-buffer "*eww*")
     (eww-search-words)))
-
-(use-package shrface
-  :config
-  (shrface-basic)
-  (shrface-trial)
-  (setq shr-inhibit-images t
-	shr-width 72
-	shr-use-fonts nil
-	shr-use-colors nil
-	shr-discard-aria-hidden t
-	shr-cookie-policy nil
-	shr-image-animate nil
-	shr-color-visible-luminance-min 80))
 
 (defun firefox ()
   (interactive)

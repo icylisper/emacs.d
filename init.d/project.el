@@ -28,7 +28,7 @@
 		     ".graphql")))
 
 (el-get-bundle dash)
-(el-get-bundle transient)
+(el-get-bundle magit/transient :name transient)
 (el-get-bundle with-editor)
 
 (add-to-list 'load-path "~/lib/emacs/el-get/with-editor/lisp")
@@ -110,9 +110,46 @@
   :format literal
   :dir project
   :confirm never
-  :files "*.{clj,cljs,graphql,ml,org,janet,rs,py,go,js,ex,exs,lisp,sh,mli}"
+  :files "*.*"
   :flags ("--word-regexp")
   :menu ("Custom" "c" "Current"))
 
 (add-hook 'rg-mode-hook #'highline-mode-on)
+
 (global-set-key (kbd "C-c g") 'rg-current-dir)
+
+(defun lookup-doc ()
+  (interactive))
+
+;; transient
+(transient-define-prefix projectile-transient-menu ()
+  "A menu for projectile"
+  [["File"
+    ("f" "file" projectile-find-file)
+    ("d" "dired" projectile-dired)
+    ("D" "directory" projectile-find-dir)
+    ("e" "recent" projectile-recentf)
+    ("l" "file in dir" projectile-find-file-in-directory)
+    ("G" "dwim" projectile-find-file-dwim)]
+
+   ["Buffer"
+    ("e" "recent" projectile-recentf)
+    ("b" "buffer" projectile-switch-to-buffer)]
+
+   ["Shell"
+    ("/" "shell" projectile-run-shell-command-in-root)
+    ("!" "shell" projectile-run-shell)]
+
+   ["Search"
+    ("o" "multi" projectile-multi-occur)
+    ("s" "rg" rg-current-dir)
+    ("r" "rgrep" rgrep)
+    ("%" "replace" projectile-replace)]
+
+   ["Build"
+    ("c" "compile" projectile-compile-project)]
+
+   ["Git"
+    ("L" "Log" magit-log-head)]])
+
+(global-set-key (kbd "C-c p") 'projectile-transient-menu)

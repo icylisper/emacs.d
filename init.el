@@ -17,14 +17,14 @@
     (goto-char (point-max))
     (eval-print-last-sexp)))
 
-
 (defun unfringe ()
   (interactive)
   (set-face-attribute 'fringe nil :background nil))
 
-(add-to-list 'custom-theme-load-path "~/lib/emacs/themes/base16-emacs/build")
-(set-face-attribute 'variable-pitch nil :font "inconsolata" :height 172)
-(set-frame-font "hasklig 14" nil t)
+(set-face-attribute 'variable-pitch nil :font "inconsolata" :height 148)
+(set-frame-font "hasklig 13" nil t)
+;;(set-frame-font "inconsolata 13" nil t)
+
 
 ;; basic lib
 (el-get-bundle use-package)
@@ -43,7 +43,15 @@
 (el-get-bundle request)
 (el-get-bundle jwiegley/emacs-async :name async)
 (el-get-bundle pcre2el)
+(el-get-bundle transient)
 (package-initialize)
+
+
+(use-package transient
+     :config
+     (setq transient-hide-during-minibuffer-read t
+	   transient-show-popup 0.1))
+
 (use-package queue :ensure t)
 
 (setq warning-minimum-level :emergency
@@ -183,14 +191,6 @@
 
 (global-set-key "\C-xk" 'kill-this-buffer)
 
-(defun kill-matching-buffers-just-do-it ()
-  "Kill buffers whose names match REGEXP, without asking."
-  (interactive)
-  (cl-letf (((symbol-function 'kill-buffer-ask) #'kill-buffer))
-    (call-interactively #'kill-matching-buffers)))
-
-(global-set-key "\C-xK" 'kill-matching-buffers-just-do-it)
-
 ;; undo tree
 (el-get-bundle akhayyat/emacs-undo-tree :name undo-tree)
 (use-package undo-tree
@@ -293,7 +293,6 @@
   :config
   (display-battery-mode))
 
-
 (el-get-bundle ace-jump-mode)
 (use-package ace-jump-mode
   :init
@@ -314,27 +313,12 @@
 
 (init! 'dired)
 (init! 'completion)
-(init! 'lang-cl)
-(init! 'lang-clojure)
-(init! 'lang-elisp)
-(init! 'lang-racket)
-(init! 'lang-elixir)
-(init! 'lang-rust)
-(init! 'lang-ocaml)
-(init! 'lang-rust)
-(init! 'lang-dart)
-(init! 'lang-python)
-(init! 'lang-js)
-(init! 'lang-go)
-(init! 'lang-misc)
-(init! 'sexp)
+(init! 'lang)
 (init! 'crypto)
 (init! 'org)
 (init! 'project)
-(init! 'sys-shell)
-(init! 'net-http)
-(init! 'net-mail)
-(init! 'net-ssh)
-(init! 'net-feed)
+(init! 'sys)
+(init! 'web)
+;(init! 'mail)
 
 (load-file "~/.emacs.d/icylisper.el")

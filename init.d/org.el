@@ -1,8 +1,8 @@
 ;; org-mode
-(add-to-list 'load-path "~/lib/emacs/el-get/org-mode/lisp")
-(add-to-list 'load-path "~/lib/emacs/el-get/org-mode/contrib/lisp")
+;;(add-to-list 'load-path "~/lib/emacs/el-get/org-mode/lisp")
+;;(add-to-list 'load-path "~/lib/emacs/el-get/org-mode/contrib/lisp")
 
-(el-get-bundle org-mode)
+;;(el-get-bundle org-mode)
 (use-package org
   :mode ("\\.org\\'" . org-mode)
   :bind (:map org-mode-map
@@ -21,6 +21,7 @@
 	  org-use-speed-commands t
 	  org-log-done 'time
 	  org-html-doctype "html5"
+	  org-html-indent t
 	  org-M-RET-may-split-line '((item . nil))
 	  org-return-follows-link t)
     (add-hook 'org-mode-hook 'turn-on-font-lock)
@@ -39,17 +40,12 @@
    '((emacs-lisp . t)
      (org . t)
      (clojure . t)
-     (dot . t)
-     (blockdiag . t)))
+     (dot . t)))
 
   (add-hook 'org-babel-after-execute-hook
 	    (lambda ()
 	      (when org-inline-image-overlays
 		(org-redisplay-inline-images)))))
-
-(el-get-bundle corpix/ob-blockdiag.el :name ob-blockdiag)
-
-(use-package ob-blockdiag)
 
 
 (use-package org-src
