@@ -114,14 +114,7 @@
     (setq racket-program (runtime-path "racket/bin/racket")
 	  racket-images-inline t
 	  tab-always-indent 'complete
-	  comint-prompt-read-only t)
-    (add-hook 'racket-mode-hook #'enable-paredit-mode)
-    (add-hook 'racket-repl-mode-hook #'enable-paredit-mode)
-    (add-hook 'scheme-mode-hook 'paredit-mode)
-
-    (add-hook 'racket-mode-hook 'rainbow-delimiters-mode)
-    (add-hook 'racket-repl-mode-hook 'rainbow-delimiters-mode)
-    (add-hook 'scheme-mode-hook 'rainbow-delimiters-mode))
+	  comint-prompt-read-only t))
 
 
 ;; janet
@@ -151,7 +144,9 @@
   (add-hook 'lisp-mode-hook 'slime-mode)
   (add-hook 'slime-repl-mode-hook 'paredit-mode)
   (add-hook 'lisp-mode-hook 'paredit-mode)
-
+  (add-hook 'racket-mode-hook #'enable-paredit-mode)
+  (add-hook 'racket-repl-mode-hook #'enable-paredit-mode)
+  (add-hook 'scheme-mode-hook 'paredit-mode)
   (add-hook 'emacs-lisp-mode-hook 'paredit-mode))
 
 (use-package show-paren-mode
@@ -168,7 +163,10 @@
   :config
   (add-hook 'lisp-mode-hook 'rainbow-delimiters-mode)
   (add-hook 'janet-mode-hook 'rainbow-delimiters-mode)
-  (add-hook 'emacs-lisp-mode-hook 'rainbow-delimiters-mode))
+  (add-hook 'emacs-lisp-mode-hook 'rainbow-delimiters-mode)
+  (add-hook 'racket-mode-hook 'rainbow-delimiters-mode)
+  (add-hook 'racket-repl-mode-hook 'rainbow-delimiters-mode)
+  (add-hook 'scheme-mode-hook 'rainbow-delimiters-mode))
 
 
 ;; end of lisps
@@ -234,6 +232,7 @@
 (add-to-list 'exec-path (runtime-path "python/bin"))
 
 (use-package python-mode
+  :interpreter "python"
   :config
   (setq python-indent-offset 4))
 
@@ -376,3 +375,31 @@
 
 ;; (el-get-bundle flycheck)
 ;; (el-get-bundle intramurz/flycheck-eglot :name flycheck-eglot)
+
+
+;; generic lang compile
+
+(use-package compile
+  :no-require
+  :bind (("C-c c" . compile)
+         ("M-O"   . show-compilation))
+  :bind (:map compilation-mode-map
+              ("z" . delete-window))
+  :preface
+  (defun show-compilation ()
+    (interactive)
+    (let ((it
+           (catch 'found
+             (dolist (buf (buffer-list))
+               (when (string-match "\\*compilation\\*" (buffer-name buf))
+                 (throw 'found buf))))))
+      (if it
+          (display-buffer it)
+        (call-interactively 'compile))))
+
+  (defun compilation-ansi-color-process-output ()
+    (ansi-color-process-output nil)
+    (set (make-local-variable 'comint-last-output-start)
+         (point-marker)))
+
+  :hook (compilation-filter . compilation-ansi-color-process-output))
