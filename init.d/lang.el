@@ -210,6 +210,31 @@
 		    tab-width 4))))
 
 
+;; ocaml
+(add-to-list 'exec-path (runtime-path "ocaml/bin"))
+
+(el-get-bundle tuareg-mode)
+(use-package tuareg-mode
+  :mode ("\\.ml[ily]?$" . tuareg-mode)
+  :config
+  (progn
+    (dolist (var (car (read-from-string
+		       (shell-command-to-string "opam env --sexp"))))
+      (setenv (car var) (cadr var)))
+    (setq exec-path (split-string (getenv "PATH") path-separator))
+    (dolist (ext '(".cmo" ".cmx" ".cma" ".cmxa" ".cmi"))
+      (add-to-list 'completion-ignored-extensions ext))
+    (add-to-list 'auto-mode-alist '("dune$" . tuareg-jbuild-mode))
+
+    (setq tuareg-indent-align-with-first-arg t
+	  tuareg-comment-show-paren t
+	  tuareg-match-patterns-aligned t)
+
+    (add-hook 'tuareg-mode-hook
+              (lambda()
+		(when (functionp 'prettify-symbols-mode)
+                  (prettify-symbols-mode))))))
+
 ;; javascript
 (add-to-list 'auto-mode-alist '("\\.js\\'" . js-mode))
 
