@@ -33,6 +33,13 @@
 
 (add-to-list 'load-path "~/lib/emacs/el-get/with-editor/lisp")
 
+(el-get-bundle transient)
+(use-package transient
+     :config
+     (setq transient-hide-during-minibuffer-read t
+	   transient-show-popup 0.1))
+
+
 (el-get-bundle magit/magit
   :name magit
   :depends (dash transient with-editor)
@@ -116,7 +123,7 @@
 
 (add-hook 'rg-mode-hook #'highline-mode-on)
 
-(global-set-key (kbd "C-c g") 'rg-current-dir)
+
 
 (defun lookup-doc ()
   (interactive))
@@ -152,4 +159,7 @@
    ["Git"
     ("L" "Log" magit-log-head)]])
 
+;; C-c prefix
+
 (global-set-key (kbd "C-c p") 'projectile-transient-menu)
+(global-set-key (kbd "C-c g") 'rg-current-dir)
