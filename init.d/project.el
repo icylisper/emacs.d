@@ -82,27 +82,48 @@
   :config
   (add-hook 'magit-status-mode-hook 'magit-filenotify-mode))
 
+(use-package recentf
+  :config
+  (add-to-list 'recentf-exclude "\\elpa")
+  (add-to-list 'recentf-exclude "private/tmp")
+  (add-to-list 'recentf-exclude "\\target")
+  (add-to-list 'recentf-exclude "\\build")
+  (add-to-list 'recentf-exclude "\\bin")
+  (recentf-mode))
+
+(recentf-mode +1)
+
 (use-package projectile
   :init
-  (projectile-global-mode)
+  (projectile-mode +1)
   :defer (projectile-cleanup-known-projects)
   :diminish projectile-mode
   :config
   (setq projectile-switch-project-action 'projectile-dired
 	projectile-find-dir-includes-top-level t
 	projectile-track-known-projects-automatically nil
-	projectile-remember-window-configs nil
+	projectile-remember-window-configs t
 	projectile-enable-caching nil
 	projectile-indexing-method 'alien
 	projectile-completion-system 'default
+	projectile-per-project-compilation-buffer t
 	projectile-require-project-root t
-	projectile-mode-line '(:eval (format " (%s)"
-					     (projectile-project-name)))
+	projectile-mode-line '(:eval (format " (%s)" (projectile-project-name)))
 	projectile-sort-order 'recently-active)
 
-  :bind (("C-c D" . projectile-dired)
-	 ("C-c !" . projectile-run-command-in-root)
-	 ("C-c b" . projectile-switch-to-buffer)))
+  :bind-keymap ("C-c p" . projectile-command-map)
+  :bind
+  (("C-c !" . projectile-run-command-in-root)
+   ("C-c b" . projectile-switch-to-buffer)
+   ("C-c r" . projectile-recentf)
+   ("C-c RET" . projectile-run-shell)))
+
+;; project-specific
+(global-set-key (kbd "C-c g") 'rg-current-dir)
+;; global
+(global-set-key (kbd "C-x f") 'projectile-find-file-in-known-projects)
+(global-set-key (kbd "C-x RET") 'projectile-run-shell)
+(global-set-key (kbd "C-x p") 'projectile-switch-project)
 
 (el-get-bundle wgrep)
 (el-get-bundle dajva/rg.el :name rg)
