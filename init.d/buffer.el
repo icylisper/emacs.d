@@ -103,6 +103,28 @@
   (("C-c j" . imenu)))
 
 
+(el-get-bundle bmag/imenu-list :name imenu-list)
+
+
+(use-package imenu-list
+  :commands imenu-list-minor-mode)
+
+;; align
+
+(use-package align
+  :bind (("M-["   . align-code)
+         ("C-c [" . align-regexp))
+  :commands align
+  :preface
+  (defun align-code (beg end &optional arg)
+    (interactive "rP")
+    (if (null arg)
+        (align beg end)
+      (let ((end-mark (copy-marker end)))
+        (indent-region beg end-mark nil)
+        (align beg end-mark)))))
+
+
 ;; completion
 (ido-mode -1)
 
