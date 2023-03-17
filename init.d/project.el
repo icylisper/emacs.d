@@ -118,8 +118,7 @@
    ("C-c r" . projectile-recentf)
    ("C-c RET" . projectile-run-shell)))
 
-;; project-specific
-(global-set-key (kbd "C-c g") 'rg-current-dir)
+
 ;; global
 (global-set-key (kbd "C-x f") 'projectile-find-file-in-known-projects)
 (global-set-key (kbd "C-x RET") 'projectile-run-shell)
@@ -144,6 +143,13 @@
 
 (add-hook 'rg-mode-hook #'highline-mode-on)
 
+(global-set-key (kbd "C-c G") 'rg-current-dir)
+
+(el-get-bundle Wilfred/deadgrep :name deadgrep)
+(use-package deadgrep
+   :bind (("C-c g" . #'deadgrep)))
+
+(add-hook 'deadgrep-mode-hook #'highline-mode-on)
 
 
 (defun lookup-doc ()
