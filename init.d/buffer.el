@@ -141,6 +141,7 @@
 ;; catch-all completion-styles
 
 (setq completion-show-help nil
+      completions-header-format nil
       completions-format 'one-column
       completion-category-overrides '((file (styles basic substring))
 				      (buffer (styles initials flex)
