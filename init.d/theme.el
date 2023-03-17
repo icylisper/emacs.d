@@ -65,8 +65,3 @@
 (use-package mood-line
   :init
   (mood-line-mode))
-
-(el-get-bundle dimmer)
-(use-package dimmer
-  :custom (dimmer-fraction 0.3)
-  :config (dimmer-mode))
