@@ -116,7 +116,7 @@
 (init! 'crypto)
 (init! 'org)
 (init! 'project)
-(init! 'sys)
+(init! 'shell)
 (init! 'web)
 (init! 'help)
 ;;(init! 'mail)
