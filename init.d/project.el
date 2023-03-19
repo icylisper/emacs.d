@@ -88,26 +88,6 @@
 
 (global-set-key (kbd "C-x p") 'project-switch-project)
 
-(el-get-bundle wgrep)
-(el-get-bundle dajva/rg.el :name rg)
-(use-package rg
-  :init
-  (require 'rg)
-  (rg-enable-default-bindings))
-
-(rg-define-search rg-current-dir
-  "search current dir"
-  :query ask
-  :format literal
-  :dir project
-  :confirm never
-  :files "*.*"
-  :flags ("--word-regexp")
-  :menu ("Custom" "c" "Current"))
-
-(add-hook 'rg-mode-hook #'highline-mode-on)
-
-(global-set-key (kbd "C-c G") 'rg-current-dir)
 
 (el-get-bundle Wilfred/deadgrep :name deadgrep)
 (use-package deadgrep
