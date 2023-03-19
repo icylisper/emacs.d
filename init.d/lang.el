@@ -437,8 +437,9 @@
              '(rust-mode . (eglot-rust-x-analyzer "rust-analyzer" "-v"
 						  "--log-file" "/tmp/ra.log")))
 
-;;(add-hook 'rust-mode-hook 'eglot-ensure)
-
+(defun eglot-connect ()
+  (interactive)
+  (eglot-ensure))
 
 ;; tree-sitter
 
