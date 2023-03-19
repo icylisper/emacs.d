@@ -885,29 +885,11 @@
   :config
   (add-hook 'magit-status-mode-hook 'magit-filenotify-mode))
 
-(use-package recentf
-  :config
-  (add-to-list 'recentf-exclude "\\elpa")
-  (add-to-list 'recentf-exclude "private/tmp")
-  (add-to-list 'recentf-exclude "\\target")
-  (add-to-list 'recentf-exclude "\\build")
-  (add-to-list 'recentf-exclude "\\bin")
-  (recentf-mode))
-
-(recentf-mode +1)
-
 (use-package project
   :config
   (setq project-vc-extra-root-markers '(".git" ".project")
 	project-list-file "~/.emacs.d/projects")
-  (setq project-switch-commands
-	'((project-find-file "Find file")
-	  (project-find-regexp "Find regexp")
-	  (project-find-dir "Find directory")
-	  (project-dired "Dired")
-	  (project-switch-to-buffer "Find Buffer")
-	  (project-async-shell-command "Command")
-	  (magit-project-status "Magit")))
+  (setq project-switch-commands 'project-find-file)
   :bind
   (("C-c f" . project-find-file)
    ("C-c b" . project-switch-to-buffer)
