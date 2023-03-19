@@ -60,8 +60,23 @@
   :config
   (display-battery-mode))
 
-(el-get-bundle jessiehildebrandt/mood-line :name mood-line)
+(el-get-bundle solarized-emacs)
 
-(use-package mood-line
-  :init
-  (mood-line-mode))
+(use-package solarized-emacs)
+
+(setq solarized-distinct-fringe-background nil
+      solarized-use-variable-pitch nil
+      solarized-high-contrast-mode-line nil
+      solarized-use-less-bold t
+      solarized-use-bold nil
+      solarized-use-more-italic nil
+      solarized-emphasize-indicators nil
+      solarized-scale-org-headlines nil
+      solarized-scale-markdown-headlines nil
+      solarized-height-minus-1 1.0
+      solarized-height-plus-1 1.0
+      solarized-height-plus-2 1.0
+      solarized-height-plus-3 1.0
+      solarized-height-plus-4 1.0)
+
+;; (set-face-bold-p 'bold nil)
