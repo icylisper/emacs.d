@@ -2,9 +2,6 @@
 (defun runtime-path (dir)
   (expand-file-name dir "~/runtime"))
 
-(defun lsp-path (bin)
-  (expand-file-name bin "~/lib/emacs/lsp"))
-
 (defun lib-path (bin)
   (expand-file-name bin "~/lib"))
 
@@ -227,13 +224,9 @@
   :mode ("\\.ml[ily]?$" . tuareg-mode)
   :config
   (progn
-    (dolist (var (car (read-from-string
-		       (shell-command-to-string "opam env --sexp"))))
-      (setenv (car var) (cadr var)))
-    (setq exec-path (split-string (getenv "PATH") path-separator))
+
     (dolist (ext '(".cmo" ".cmx" ".cma" ".cmxa" ".cmi"))
       (add-to-list 'completion-ignored-extensions ext))
-    (add-to-list 'auto-mode-alist '("dune$" . tuareg-jbuild-mode))
 
     (setq tuareg-indent-align-with-first-arg t
 	  tuareg-comment-show-paren t
@@ -242,7 +235,10 @@
     (add-hook 'tuareg-mode-hook
               (lambda()
 		(when (functionp 'prettify-symbols-mode)
-                  (prettify-symbols-mode))))))
+                  (prettify-symbols-mode)))))
+  :bind
+  (:map tuareg-mode-map
+	("C-c C-c" . compile)))
 
 ;; javascript
 (add-to-list 'auto-mode-alist '("\\.js\\'" . js-mode))
@@ -289,9 +285,6 @@
 
 ;; rust
 
-;; (setenv "CARGO_HOME" (lib-path "rust/cargo"))
-;; (setenv "RUSTUP_HOME" (lib-path "rust/rustup"))
-;; (setenv "RUST_TARGET_DIR" (lib-path "rust/cargo/target"))
 (setenv "RUSTUP_TOOLCHAIN" "stable")
 
 (add-to-list 'exec-path (lib-path "rust/cargo/bin"))
@@ -307,7 +300,12 @@
 		(setq indent-tabs-mode nil)
 		(setq prettify-symbols-alist
 		      '(("fn" . 955)
-			("->" . 8594)))))))
+			("->" . 8594))))))
+  :bind
+  (:map rust-mode-map
+	("C-c C-c" . rust-compile)
+	("C-c C-l" . rust-run-clippy)
+	("C-c C-d" . eldoc-print-current-symbol-info)))
 
 ;; dirty formats
 
@@ -350,17 +348,72 @@
   :bind (:map dart-mode-map
               ("C-M-x" . #'flutter-run-or-hot-reload)))
 
+
+;; flymake
+
+(custom-set-faces
+ '(flymake-errline ((((class color)) (:underline "red"))))
+ '(flymake-warnline ((((class color)) (:underline "yellow")))))
+
+(global-set-key (kbd "C-c n") 'flymake-goto-next-error)
+(global-set-key (kbd "C-c p") 'flymake-goto-prev-error)
+
+
+;; compilation
+
+(use-package compile
+  :no-require
+  :bind (("C-c c" . compile)
+         ("M-O"   . show-compilation))
+  :bind (:map compilation-mode-map
+              ("z" . delete-window))
+
+  :config
+  (setq compilation-read-command nil)
+  :preface
+  (defun show-compilation ()
+    (interactive)
+    (let ((it
+           (catch 'found
+             (dolist (buf (buffer-list))
+               (when (string-match "\\*compilation\\*" (buffer-name buf))
+                 (throw 'found buf))))))
+      (if it
+          (display-buffer it)
+        (call-interactively 'compile))))
+
+  (defun compilation-ansi-color-process-output ()
+    (ansi-color-process-output nil)
+    (set (make-local-variable 'comint-last-output-start)
+         (point-marker)))
+
+  :hook (compilation-filter . compilation-ansi-color-process-output))
+
+
+;; xref
+
+(use-package xref
+  :bind (("M-." . #'xref-find-definitions)
+         ("M-;" . #'xref-go-back)
+         ("M-r" . #'xref-find-references)))
+
 ;; lsp
 
-(el-get-bundle eglot)
+(add-to-list 'exec-path (lib-path "lsp"))
+(add-to-list 'exec-path (lib-path "lsp/elixir-ls"))
+
+;;(el-get-bundle eglot)
 (el-get-bundle external-completion)
 
 (use-package eglot
   :config
   (setq eglot-send-changes-idle-time (* 60 60))
+  (add-to-list 'eglot-stay-out-of 'flymake)
   (add-hook 'eglot-managed-mode-hook (lambda ()
 				       (eldoc-mode 1)
-				       (flymake-mode 1))))
+				       (flymake-mode -1)))
+  :hook
+  ((rust-mode . eglot-ensure)))
 
 (defclass eglot-rust-x-analyzer (eglot-lsp-server) ()
   :documentation "A custom class for rust-analyzer.")
@@ -373,14 +426,21 @@
       :diagnostics (:disabled ["unresolved-proc-macro"
 			       "unresolved-macro-call"]))))
 
-(add-hook 'rust-mode-hook 'eglot-ensure)
-(add-hook 'clojure-mode-hook 'eglot-ensure)
-
 (setq eglot-server-programs
-      '((python-mode  "pyls")
-	(clojure-mode "clojure-lsp")
-	(tuareg-mode "ocamllsp")
-	(elixir-mode (lsp-path "elixir-ls/language_server.sh"))))
+      '((python-mode . ("pyls"))
+	(clojure-mode . ("clojure-lsp"))
+	(elixir-mode . ("language_server.sh"))
+	(tuareg-mode . ("ocamllsp"))
+	(erlang-mode . ("erlang_ls" "--transport" "stdio"))))
 
 (add-to-list 'eglot-server-programs
-             '(rust-mode . (eglot-rust-x-analyzer "rust-analyzer" "-v" "--log-file" "/tmp/ra.log")))
+             '(rust-mode . (eglot-rust-x-analyzer "rust-analyzer" "-v"
+						  "--log-file" "/tmp/ra.log")))
+
+;; tree-sitter
+
+(use-package tree-sitter
+  :config
+  (require 'tree-sitter-langs)
+  (global-tree-sitter-mode)
+  (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode))
