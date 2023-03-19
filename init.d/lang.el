@@ -240,6 +240,7 @@
   (:map tuareg-mode-map
 	("C-c C-c" . compile)))
 
+
 ;; javascript
 (add-to-list 'auto-mode-alist '("\\.js\\'" . js-mode))
 
@@ -286,6 +287,7 @@
 ;; rust
 
 (setenv "RUSTUP_TOOLCHAIN" "stable")
+(setenv "RUST_TARGET_DIR" (lib-path "rust/cargo/target"))
 
 (add-to-list 'exec-path (lib-path "rust/cargo/bin"))
 (el-get-bundle rust-mode)
@@ -363,13 +365,13 @@
 
 (use-package compile
   :no-require
-  :bind (("C-c c" . compile)
-         ("M-O"   . show-compilation))
+  :bind (("C-c c" . compile))
   :bind (:map compilation-mode-map
               ("z" . delete-window))
 
   :config
-  (setq compilation-read-command nil)
+  (setq compilation-read-command nil
+	compile-command "make -k")
   :preface
   (defun show-compilation ()
     (interactive)
@@ -411,9 +413,7 @@
   (add-to-list 'eglot-stay-out-of 'flymake)
   (add-hook 'eglot-managed-mode-hook (lambda ()
 				       (eldoc-mode 1)
-				       (flymake-mode -1)))
-  :hook
-  ((rust-mode . eglot-ensure)))
+				       (flymake-mode -1))))
 
 (defclass eglot-rust-x-analyzer (eglot-lsp-server) ()
   :documentation "A custom class for rust-analyzer.")
@@ -430,12 +430,15 @@
       '((python-mode . ("pyls"))
 	(clojure-mode . ("clojure-lsp"))
 	(elixir-mode . ("language_server.sh"))
-	(tuareg-mode . ("ocamllsp"))
+	(caml-mode . ("ocamllsp"))
 	(erlang-mode . ("erlang_ls" "--transport" "stdio"))))
 
 (add-to-list 'eglot-server-programs
              '(rust-mode . (eglot-rust-x-analyzer "rust-analyzer" "-v"
 						  "--log-file" "/tmp/ra.log")))
+
+;;(add-hook 'rust-mode-hook 'eglot-ensure)
+
 
 ;; tree-sitter
 
