@@ -554,7 +554,6 @@
 (el-get-bundle elixir)
 (use-package elixir)
 
-
 ;; erlang
 
 (setq load-path (cons (runtime-path "erlang/emacs") load-path))
@@ -707,9 +706,6 @@
 (use-package toml-mode
   :config
   (add-to-list 'auto-mode-alist '(".*\\.toml$" . any-ini-mode)))
-
-(el-get-bundle terraform-mode)
-(use-package terraform-mode)
 
 (el-get-bundle xcezx/blockdiag-mode :blockdiag)
 (use-package blockdiag)
