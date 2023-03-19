@@ -92,13 +92,6 @@
 (when (file-exists-p custom-file)
   (load custom-file))
 
-(el-get-bundle diasjorge/emacs-load-env-vars
-  :name load-env-vars)
-
-(el-get-bundle exec-path-from-shell)
-(use-package exec-path-from-shell
-  :init (exec-path-from-shell-initialize))
-
 (defun load-if-exists (file)
   (when (file-exists-p file)
     (load-file file)))
