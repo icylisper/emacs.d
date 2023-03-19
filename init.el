@@ -1131,11 +1131,6 @@
   (add-hook 'eww-mode 'ace-link-mode))
 
 
-(defun eww-wikipedia (text)
-  (interactive (list (read-string "Wiki for: ")))
-  (eww (format "https://en.m.wikipedia.org/wiki/Special:Search?search=%s"
-               (url-encode-url text))))
-
 (defun buffer-exists (bufname)
   (not (eq nil (get-buffer bufname))))
 
@@ -1179,6 +1174,8 @@
     (setq guide-key/popup-window-position 'bottom)
     (setq guide-key/guide-key-sequence
           `("C-c" "C-x" "C-h"))))
+
+;; writing stuff
 
 (defalias 'yes-or-no-p 'y-or-n-p)
 (load-file "~/.emacs.d/icylisper.el")
