@@ -141,23 +141,13 @@
 ;; catch-all completion-styles
 
 (setq completion-show-help nil
-      completions-header-format nil
       completions-format 'one-column
       completion-category-overrides '((file (styles basic substring))
 				      (buffer (styles initials flex)
 					      (cycle . 3))))
 
-(icomplete-vertical-mode 1)
-
 ;; custom-styles
 ;; (add-to-list 'completion-category-defaults '(cider (styles basic)))
-
-;; live-completions
-
-(el-get-bundle oantolin/live-completions :name live-completions-mode)
-
-(use-package live-completions-mode)
-
 
 ;; completions buffer height
 
@@ -170,3 +160,5 @@
 
 (setq temp-buffer-max-height #'max-completions-height)
 (temp-buffer-resize-mode)
+
+(make-variable-buffer-local 'compile-command)

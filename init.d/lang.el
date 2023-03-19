@@ -3,7 +3,10 @@
   (expand-file-name dir "~/runtime"))
 
 (defun lsp-path (bin)
-  (expand-file-name bin "~/runtime/emacs/lsp"))
+  (expand-file-name bin "~/lib/emacs/lsp"))
+
+(defun lib-path (bin)
+  (expand-file-name bin "~/lib"))
 
 ;; elisp
 
@@ -92,8 +95,6 @@
 (add-hook 'clojure-mode-hook 'paredit-mode)
 (add-hook 'clojure-mode-hook 'rainbow-delimiters-mode)
 
-(add-hook 'cider-repl-mode-hook '(lambda () (setq scroll-conservatively 101)))
-
 (el-get-bundle ericdallo/jet.el :name jet)
 (use-package jet)
 
@@ -102,6 +103,8 @@
   (jet-to-clipboard (jet--thing-at-point) '("--from=json" "--to=edn")))
 
 ;; racket
+
+(add-to-list 'exec-path (runtime-path "racket/bin"))
 
 (el-get-bundle racket-mode
   :depends (pos-tip))
@@ -118,6 +121,8 @@
 
 
 ;; janet
+
+(add-to-list 'exec-path (runtime-path "janet/bin"))
 
 (el-get-bundle SerialDev/ijanet-mode :name ijanet-mode)
 (use-package ijanet-mode)
@@ -173,6 +178,8 @@
 
 ;; elixir
 
+(add-to-list 'exec-path (runtime-path "elixir/bin"))
+
 (el-get-bundle elixir)
 (use-package elixir)
 
@@ -200,6 +207,8 @@
 
 
 ;; go
+
+(add-to-list 'exec-path (runtime-path "go/bin"))
 
 (el-get-bundle go-mode)
 (use-package go-mode
@@ -238,6 +247,8 @@
 ;; javascript
 (add-to-list 'auto-mode-alist '("\\.js\\'" . js-mode))
 
+(add-to-list 'exec-path (lib-path "node/bin"))
+
 (setq js-indent-level 2)
 (use-package js-mode
   :init
@@ -254,6 +265,7 @@
 
 ;; python
 
+(add-to-list 'exec-path (lib-path "python/bin"))
 (add-to-list 'exec-path (runtime-path "python/bin"))
 
 (use-package python-mode
@@ -262,6 +274,8 @@
   (setq python-indent-offset 4))
 
 ;; ruby
+
+(add-to-list 'exec-path (runtime-path "ruby/bin"))
 
 (el-get-bundle inf-ruby)
 
@@ -274,52 +288,26 @@
 
 
 ;; rust
+
+;; (setenv "CARGO_HOME" (lib-path "rust/cargo"))
+;; (setenv "RUSTUP_HOME" (lib-path "rust/rustup"))
+;; (setenv "RUST_TARGET_DIR" (lib-path "rust/cargo/target"))
+(setenv "RUSTUP_TOOLCHAIN" "stable")
+
+(add-to-list 'exec-path (lib-path "rust/cargo/bin"))
 (el-get-bundle rust-mode)
 (use-package rust-mode
   :mode ("\\.rs$" . rust-mode)
   :config
   (progn
+    (electric-indent-mode 0)
     (setq rust-format-on-save nil)
     (add-hook 'rust-mode-hook
 	      (lambda ()
+		(setq indent-tabs-mode nil)
 		(setq prettify-symbols-alist
 		      '(("fn" . 955)
 			("->" . 8594)))))))
-
-(add-to-list 'exec-path "~/.cargo/bin")
-(el-get-bundle cargo)
-(use-package cargo
-  :config
-  (add-hook 'rust-mode-hook 'cargo-minor-mode)
-  (setq compile-command "cargo build")
-  :bind
-  (:map rust-mode-map
-	("C-c C-b" . cargo-process-build)
-	("C-c C-k" . cargo-process-run)
-	("C-c C-r" . cargo-process-run)))
-
-
-(el-get-bundle  jorgenschaefer/project-el :name project)
-(el-get-bundle brotzeit/rustic :name rustic)
-
-(use-package rustic
-  :config
-  (progn
-    (setq lsp-rust-server 'rust-analyzer)
-    (setq rustic-lsp-client 'eglot
-	  rustic-analyzer-command '("/usr/local/bin/rust-analyzer")
-	  rustic-lsp-server 'rust-analyzer)
-    (setq rustic-format-on-save nil
-	  rustic-flycheck-setup-mode-line-p nil)))
-
-
-(defun rustic-mode-auto-save-hook ()
-  "Enable auto-saving in rustic-mode buffers."
-  (when buffer-file-name
-    (setq-local compilation-ask-about-save nil)))
-
-(add-hook 'rustic-mode-hook 'rustic-mode-auto-save-hook)
-
 
 ;; dirty formats
 
@@ -370,61 +358,29 @@
 (use-package eglot
   :config
   (setq eglot-send-changes-idle-time (* 60 60))
-
   (add-hook 'eglot-managed-mode-hook (lambda ()
-				       (eldoc-mode 1))))
+				       (eldoc-mode 1)
+				       (flymake-mode 1))))
 
-(defun setup-workspaces ()
-  (setq-local eglot-workspace-configuration
-	      '(:rust-analyzer
-		( :procMacro ( :attributes (:enable t)
-			      :enable t)
-		  :cargo (:buildScripts (:enable t))
-		  :diagnostics (:disabled ["unresolved-proc-macro"
-					   "unresolved-macro-call"])))))
-
-(add-hook 'rust-mode-hook #'setup-workspaces)
-
-
-(defclass eglot-analyzer (eglot-lsp-server) ()
+(defclass eglot-rust-x-analyzer (eglot-lsp-server) ()
   :documentation "A custom class for rust-analyzer.")
 
-;; Rust-analyzer requires the workspaceConfiguration sent as
-;; initializationOptions at startup time. See
-(cl-defmethod eglot-initialization-options ((server eglot-analyzer))
-  eglot-workspace-configuration)
+(cl-defmethod eglot-initialization-options ((server eglot-rust-x-analyzer))
+  '(:rust-analyzer
+    ( :procMacro ( :attributes (:enable t)
+		   :enable t)
+      :cargo (:buildScripts (:enable t))
+      :diagnostics (:disabled ["unresolved-proc-macro"
+			       "unresolved-macro-call"]))))
+
+(add-hook 'rust-mode-hook 'eglot-ensure)
+(add-hook 'clojure-mode-hook 'eglot-ensure)
+
+(setq eglot-server-programs
+      '((python-mode  "pyls")
+	(clojure-mode "clojure-lsp")
+	(tuareg-mode "ocamllsp")
+	(elixir-mode (lsp-path "elixir-ls/language_server.sh"))))
 
 (add-to-list 'eglot-server-programs
-             '(rust-mode . (eglot-analyzer "rust-analyzer")))
-
-
-;; (el-get-bundle flycheck)
-;; (el-get-bundle intramurz/flycheck-eglot :name flycheck-eglot)
-
-
-;; generic lang compile
-
-(use-package compile
-  :no-require
-  :bind (("C-c c" . compile)
-         ("M-O"   . show-compilation))
-  :bind (:map compilation-mode-map
-              ("z" . delete-window))
-  :preface
-  (defun show-compilation ()
-    (interactive)
-    (let ((it
-           (catch 'found
-             (dolist (buf (buffer-list))
-               (when (string-match "\\*compilation\\*" (buffer-name buf))
-                 (throw 'found buf))))))
-      (if it
-          (display-buffer it)
-        (call-interactively 'compile))))
-
-  (defun compilation-ansi-color-process-output ()
-    (ansi-color-process-output nil)
-    (set (make-local-variable 'comint-last-output-start)
-         (point-marker)))
-
-  :hook (compilation-filter . compilation-ansi-color-process-output))
+             '(rust-mode . (eglot-rust-x-analyzer "rust-analyzer" "-v" "--log-file" "/tmp/ra.log")))

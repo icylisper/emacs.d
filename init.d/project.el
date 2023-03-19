@@ -9,24 +9,6 @@
 
 (el-get-bundle sshaw/git-link :name git-link)
 (use-package git-link)
-
-(el-get-bundle projectile)
-(el-get-bundle find-file-in-project)
-(defun ffip-create-pattern-file-finder (&rest patterns)
-  (lexical-let ((patterns patterns))
-    (lambda ()
-      (interactive)
-      (let ((ffip-patterns patterns))
-        (find-file-in-project)))))
-(use-package find-file-in-project
-  :config
-  (bind-key "C-c f" (ffip-create-pattern-file-finder
-		     "*.clj" "*.cljs" "*.org"
-		     "*.el" ".ml"
-		     "*.rs"
-		     ".janet"
-		     ".graphql")))
-
 (el-get-bundle dash)
 (el-get-bundle magit/transient :name transient)
 (el-get-bundle with-editor)
@@ -38,7 +20,6 @@
      :config
      (setq transient-hide-during-minibuffer-read t
 	   transient-show-popup 0.1))
-
 
 (el-get-bundle magit/magit
   :name magit
@@ -93,36 +74,19 @@
 
 (recentf-mode +1)
 
-(use-package projectile
-  :init
-  (projectile-mode +1)
-  :defer (projectile-cleanup-known-projects)
-  :diminish projectile-mode
+(use-package project
   :config
-  (setq projectile-switch-project-action 'projectile-dired
-	projectile-find-dir-includes-top-level t
-	projectile-track-known-projects-automatically nil
-	projectile-remember-window-configs t
-	projectile-enable-caching nil
-	projectile-indexing-method 'alien
-	projectile-completion-system 'default
-	projectile-per-project-compilation-buffer t
-	projectile-require-project-root t
-	projectile-mode-line '(:eval (format " (%s)" (projectile-project-name)))
-	projectile-sort-order 'recently-active)
-
-  :bind-keymap ("C-c p" . projectile-command-map)
+  (setq project-vc-extra-root-markers '(".projectile" ".project")
+	project-list-file "~/.emacs.d/projects")
   :bind
-  (("C-c !" . projectile-run-command-in-root)
-   ("C-c b" . projectile-switch-to-buffer)
-   ("C-c r" . projectile-recentf)
-   ("C-c RET" . projectile-run-shell)))
+  (("C-c f" . project-find-file)
+   ("C-c b" . project-switch-to-buffer)
+   ("C-c r" . project-query-replace-regexp)
+   ("C-c RET" . project-shell)
+   ("C-c c" . project-compile)
+   ("C-c k" . project-kill-buffers)))
 
-
-;; global
-(global-set-key (kbd "C-x f") 'projectile-find-file-in-known-projects)
-(global-set-key (kbd "C-x RET") 'projectile-run-shell)
-(global-set-key (kbd "C-x p") 'projectile-switch-project)
+(global-set-key (kbd "C-x p") 'project-switch-project)
 
 (el-get-bundle wgrep)
 (el-get-bundle dajva/rg.el :name rg)
@@ -151,42 +115,4 @@
 
 (add-hook 'deadgrep-mode-hook #'highline-mode-on)
 
-
-(defun lookup-doc ()
-  (interactive))
-
-;; transient
-(transient-define-prefix projectile-transient-menu ()
-  "A menu for projectile"
-  [["File"
-    ("f" "file" projectile-find-file)
-    ("d" "dired" projectile-dired)
-    ("D" "directory" projectile-find-dir)
-    ("e" "recent" projectile-recentf)
-    ("l" "file in dir" projectile-find-file-in-directory)
-    ("G" "dwim" projectile-find-file-dwim)]
-
-   ["Buffer"
-    ("e" "recent" projectile-recentf)
-    ("b" "buffer" projectile-switch-to-buffer)]
-
-   ["Shell"
-    ("/" "shell" projectile-run-shell-command-in-root)
-    ("!" "shell" projectile-run-shell)]
-
-   ["Search"
-    ("o" "multi" projectile-multi-occur)
-    ("s" "rg" rg-current-dir)
-    ("r" "rgrep" rgrep)
-    ("%" "replace" projectile-replace)]
-
-   ["Build"
-    ("c" "compile" projectile-compile-project)]
-
-   ["Git"
-    ("L" "Log" magit-log-head)]])
-
-;; C-c prefix
-
-(global-set-key (kbd "C-c p") 'projectile-transient-menu)
-(global-set-key (kbd "C-c g") 'rg-current-dir)
+(global-set-key (kbd "C-c g") 'deadgrep)
