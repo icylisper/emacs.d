@@ -76,14 +76,23 @@
 
 (use-package project
   :config
-  (setq project-vc-extra-root-markers '(".projectile" ".project")
+  (setq project-vc-extra-root-markers '(".git" ".project")
 	project-list-file "~/.emacs.d/projects")
+  (setq project-switch-commands
+	'((project-find-file "Find file")
+	  (project-find-regexp "Find regexp")
+	  (project-find-dir "Find directory")
+	  (project-dired "Dired")
+	  (project-switch-to-buffer "Find Buffer")
+	  (project-async-shell-command "Command")
+	  (magit-project-status "Magit")))
   :bind
   (("C-c f" . project-find-file)
    ("C-c b" . project-switch-to-buffer)
    ("C-c r" . project-query-replace-regexp)
    ("C-c RET" . project-shell)
    ("C-c c" . project-compile)
+   ("C-c !" . project-async-shell-command)
    ("C-c k" . project-kill-buffers)))
 
 (global-set-key (kbd "C-x p") 'project-switch-project)
