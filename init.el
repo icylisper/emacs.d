@@ -1,52 +1,94 @@
-(package-initialize)
-
-(defconst init-file (expand-file-name "emacs-init.el" user-emacs-directory)
+(defconst init-file (expand-file-name "init.el" user-emacs-directory)
   "All configurations are stored in this file.")
 
 (require 'cl-lib)
 
-(add-to-list 'load-path "~/lib/emacs/el-get/el-get")
-(add-to-list 'load-path "~/lib/emacs/el-get")
-(setq el-get-dir "~/lib/emacs/el-get")
+;;(toggle-debug-on-error)
 
-(unless (require 'el-get nil 'noerror)
-  (with-current-buffer
-      (url-retrieve-synchronously
-       "https://raw.githubusercontent.com/dimitri/el-get/master/el-get-install.el")
-    (goto-char (point-max))
-    (eval-print-last-sexp)))
+;; opinionated paths
 
-;; basic lib
-(el-get-bundle use-package)
-(el-get-bundle s)
-(el-get-bundle f)
-(el-get-bundle popup)
-(el-get-bundle epc)
-(el-get-bundle hydra)
-(el-get-bundle tablist)
-(el-get-bundle alert)
-(el-get-bundle ctable)
-(el-get-bundle bddean/xml-plus :name xml-plus)
-(el-get-bundle esxml)
-(el-get-bundle oauth2)
-(el-get-bundle alphapapa/ts.el :name ts)
-(el-get-bundle request)
-(el-get-bundle jwiegley/emacs-async :name async)
-(el-get-bundle pcre2el)
+(defun runtime-path (dir)
+  (expand-file-name dir "~/runtime"))
 
-(package-initialize)
+(defun lib-path (bin)
+  (expand-file-name bin "~/lib"))
 
-(use-package queue :ensure t)
+(add-to-list 'custom-theme-load-path "~/.emacs.d/themes")
+
+(setq exec-path `("/usr/local/bin"
+		  "/usr/bin"
+		  "/bin"
+		  "/usr/local/sbin"
+		  ,(runtime-path "clojure/bin")
+		  ,(runtime-path "ruby/bin")
+		  ,(runtime-path "python/bin")
+		  ,(runtime-path "ocaml/bin")
+		  ,(runtime-path "racket/bin")
+		  ,(runtime-path "go/bin")
+		  ,(runtime-path "elixir/bin")
+		  ,(runtime-path "janet/bin")
+		  ,(runtime-path "java/bin")
+		  ,(lib-path "rust/cargo/bin")
+		  ,(lib-path "lsp")
+		  ,(lib-path "node/bin")
+		  ,(lib-path "python/bin")
+		  ,(lib-path "lsp/elixir-ls")))
+
+;; env variables
+(setenv "RUSTUP_TOOLCHAIN" "stable")
+(setenv "RUST_TARGET_DIR" (lib-path "rust/cargo/target"))
+(setenv "JAVA_HOME" (runtime-path "java"))
+
+(setq straight-repository-branch "develop")
+
+(defvar bootstrap-version)
+(let ((bootstrap-file
+       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+      (bootstrap-version 6))
+  (unless (file-exists-p bootstrap-file)
+    (with-current-buffer
+        (url-retrieve-synchronously
+         "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el"
+         'silent 'inhibit-cookies)
+      (goto-char (point-max))
+      (eval-print-last-sexp)))
+  (load bootstrap-file nil 'nomessage))
+
+(setq package-enable-at-startup nil)
+
+(straight-use-package 'el-patch)
+(straight-use-package 'use-package)
+(setq straight-disable-native-compile t
+      straight-check-for-modifications nil
+      straight-use-package-by-default t)
+
+(use-package el-patch
+  :straight t)
+
+(use-package s)
+(use-package f)
+(use-package popup)
+(use-package epc)
+(use-package hydra)
+(use-package tablist)
+(use-package alert)
+(use-package ctable)
+(use-package ts)
+(use-package request)
+(use-package async)
+(use-package pcre2el)
+(use-package queue)
 
 (setq warning-minimum-level :emergency
       initial-scratch-message ";; happy hacking")
-(el-get-bundle no-littering)
+
 (use-package no-littering
   :init
   (require 'no-littering)
   :config
   (setq no-littering-etc-directory (expand-file-name "config/" user-emacs-directory)
 	no-littering-var-directory (expand-file-name "data/" user-emacs-directory)))
+
 (setq sentence-end-double-space nil)
 
 ;; backups
@@ -79,7 +121,7 @@
       visible-bell nil)
 
 ;; disable mouse
-(el-get-bundle purcell/disable-mouse :name disable-mouse)
+;;(el-get-bundle purcell/disable-mouse :name disable-mouse)
 (use-package disable-mouse
   :diminish disable-mouse-global-mode
   :delight disable-mouse-global-mode
@@ -97,11 +139,8 @@
   (set-face-attribute 'fringe nil :background nil))
 
 (set-face-attribute 'variable-pitch nil :font "inconsolata" :height 148)
-(set-frame-font "hasklig 13" nil t)
-
-;;themes
-(add-to-list 'custom-theme-load-path "~/lib/emacs/themes")
-(add-to-list 'load-path "~/lib/emacs/themes")
+;;(set-frame-font "hasklig 12" nil t)
+(set-frame-font "monaco 10" nil t)
 
 (defvar theme-hooks nil)
 
@@ -126,14 +165,11 @@
 
 ;; modeline
 
-(el-get-bundle smart-mode-line)
 (use-package smart-mode-line
   :init
   (sml/setup)
   (setq sml/no-confirm-load-theme t
 	sml/vc-mode-show-backend t
-	;sml/mode-width 10
-	;sml/name-width 20
 	resize-mini-windows nil)
   (sml/apply-theme nil)
   :config
@@ -141,6 +177,7 @@
     (add-to-list 'sml/hidden-modes (concat " " m))))
 
 (use-package time
+  :straight nil
   :config
   (display-time-mode)
   (setq
@@ -149,6 +186,7 @@
    display-time-default-load-average nil))
 
 (use-package battery
+  :straight nil
   :config
   (display-battery-mode))
 
@@ -158,7 +196,6 @@
       resize-mini-windows nil
       max-mini-window-height 1)
 
-(el-get-bundle ace-window)
 (use-package ace-window
   :config
   (bind-key "C-x o" 'ace-window))
@@ -194,17 +231,16 @@
 
 (global-set-key "\C-xk" 'kill-this-buffer)
 
-;; undo tree
-(el-get-bundle akhayyat/emacs-undo-tree :name undo-tree)
 (use-package undo-tree
   :init (global-undo-tree-mode)
   :config (setq
 	   undo-tree-visualizer-diff t
 	   undo-tree-visualizer-timestamps t))
 
-;; highline
-(el-get-bundle highline)
-(use-package highline-mode
+(use-package highline
+  :init
+  (require 'highline)
+  (defun highline-mode-on () (highline-mode 1))
   :config
   (bind-key (kbd "C-h C-i") 'highline-mode)
   (defadvice list-buffers (after highlight-line activate)
@@ -212,7 +248,7 @@
     (set-buffer "*Buffer List*")
     (highline-mode-on))))
 
-;; swap-buffers
+;; ;; swap-buffers
 (defun swap-buffers ()
   "Put the buffer from the selected window in next window, and vice versa."
   (interactive)
@@ -223,30 +259,23 @@
     (set-window-buffer other this-buffer)
     (set-window-buffer this other-buffer)))
 
-(el-get-bundle ace-jump-mode)
 (use-package ace-jump-mode
   :init
   (autoload 'ace-jum-mode "ace-jump-mode" "Emacs quick move" t)
   (bind-key (kbd "C-c i") 'ace-jump-mode))
 
-;; anzu
-(el-get-bundle anzu)
 (use-package anzu
   :config
   (global-anzu-mode +1))
 
-(el-get-bundle purcell/whole-line-or-region
-  :name whole-line-or-region)
 (use-package whole-line-or-region)
 
 ;; minibuffer
-(use-package minibuffer
-  :config
-  (setq enable-recursive-minibuffers t
-        resize-mini-windows nil)
-  (file-name-shadow-mode)
-  (minibuffer-depth-indicate-mode 1)
-  (minibuffer-electric-default-mode 1))
+(setq enable-recursive-minibuffers t
+      resize-mini-windows nil)
+(file-name-shadow-mode)
+(minibuffer-depth-indicate-mode 1)
+(minibuffer-electric-default-mode 1)
 
 (use-package imenu
   :config
@@ -259,16 +288,11 @@
   :bind
   (("C-c j" . imenu)))
 
-
-(el-get-bundle bmag/imenu-list :name imenu-list)
-
-
 (use-package imenu-list
   :commands imenu-list-minor-mode)
 
-;; align
-
 (use-package align
+  :straight nil
   :bind (("M-["   . align-code)
          ("C-c [" . align-regexp))
   :commands align
@@ -320,9 +344,10 @@
 (temp-buffer-resize-mode)
 
 
-;; dired
-(el-get-bundle wdired)
+;; ;; dired
 (use-package wdired
+  :init
+  (require 'highline)
   :bind (:map dired-mode-map
 	      ("r" . wdired-change-to-wdired-mode))
   :config
@@ -335,16 +360,15 @@
 		    dired-backup-overwrite t)))
   (add-hook 'dired-mode-hook #'highline-mode-on))
 
-(el-get-bundle dired-details)
 (use-package dired-details
-  :init
-  (dired-details-install)
   :config
   (bind-key (kbd "C-x C-d") 'dired)
   (setq dired-details-hidden-string ""
-	dired-dwim-target t))
+	dired-dwim-target t
+	dired-details-initially-hide t)
+  (add-hook 'dired-mode-hook #'dired-details-install))
 
-(el-get-bundle dired-hacks)
+(use-package dired-hacks)
 (use-package dired-subtree
   :bind (:map dired-mode-map
 	      ("<tab>" . dired-subtree-cycle)
@@ -361,16 +385,8 @@
 (add-hook 'dired-mode-hook 'dired-lynx-keybindings)
 (add-hook 'dired-mode-hook #'highline-mode-on)
 
-;; lang
-(defun runtime-path (dir)
-  (expand-file-name dir "~/runtime"))
-
-(defun lib-path (bin)
-  (expand-file-name bin "~/lib"))
-
-;; elisp
-
 (use-package elisp-mode
+  :straight nil
   :config
   (progn
     (setq tab-always-indent 'complete)
@@ -380,19 +396,18 @@
   :interpreter (("emacs" . emacs-lisp-mode)))
 
 (use-package eldoc
+  :straight nil
   :init (add-hook 'emacs-lisp-mode-hook 'turn-on-eldoc-mode))
 
 (use-package ert
+  :straight nil
   :config
   (add-to-list 'emacs-lisp-mode-hook 'ert--activate-font-lock-keywords))
 
-
-;; common-lisp
-
 (use-package lisp-mode
+  :straight nil
   :mode ("\\.lisp$" "\\.cl$" "stumpwmrc"))
 
-(el-get-bundle slime)
 (use-package slime
   :commands (slime slime-lisp-mode-hook)
   :config
@@ -403,14 +418,6 @@
 	slime-complete-symbol-function 'slime-fuzzy-complete-symbol
 	slime-startup-animation t))
 
-
-;; clojure
-
-(add-to-list 'exec-path (runtime-path "clojure/bin"))
-(setenv "JAVA_HOME" (runtime-path "java"))
-
-(el-get-bundle clojure-mode)
-(el-get-bundle edn)
 (use-package clojure-mode
   :mode ("\\.edn$" "\\.clj$" "\\.cljc$")
   :config
@@ -421,10 +428,8 @@
 	clojure-indent-style 'align-always
 	comment-column 70))
 
-(el-get-bundle vspinu/sesman :name sesman)
-(el-get-bundle a)
-(el-get-bundle cider :checkout "v1.6.0")
-(el-get-bundle parseclj)
+(use-package sesman)
+(use-package a)
 
 (use-package cider
   :config
@@ -455,19 +460,11 @@
 (add-hook 'clojure-mode-hook 'paredit-mode)
 (add-hook 'clojure-mode-hook 'rainbow-delimiters-mode)
 
-(el-get-bundle ericdallo/jet.el :name jet)
 (use-package jet)
 
 (defun jet-json-to-clipboard ()
   (interactive)
   (jet-to-clipboard (jet--thing-at-point) '("--from=json" "--to=edn")))
-
-;; racket
-
-(add-to-list 'exec-path (runtime-path "racket/bin"))
-
-(el-get-bundle racket-mode
-  :depends (pos-tip))
 
 (use-package racket-mode
   :config
@@ -479,27 +476,8 @@
 	  tab-always-indent 'complete
 	  comint-prompt-read-only t))
 
-
-;; janet
-
-(add-to-list 'exec-path (runtime-path "janet/bin"))
-
-(el-get-bundle SerialDev/ijanet-mode :name ijanet-mode)
-(use-package ijanet-mode)
-
-(el-get-bundle ALSchwalm/janet-mode :name janet-mode)
 (use-package janet-mode)
 
-(el-get-bundle velkyel/inf-janet :name inf-janet)
-(use-package inf-janet
-  :config
-  (setq inf-janet-program (runtime-path "janet/bin/janet")))
-
-
-(add-hook 'janet-mode-hook 'paredit-mode)
-
-
-(el-get-bundle paredit)
 (use-package paredit
   :bind (("M-]" . paredit-forward-slurp-sexp)
 	 ("M-[" . paredit-backward-slurp-sexp)
@@ -512,16 +490,17 @@
   (add-hook 'racket-mode-hook #'enable-paredit-mode)
   (add-hook 'racket-repl-mode-hook #'enable-paredit-mode)
   (add-hook 'scheme-mode-hook 'paredit-mode)
+  (add-hook 'janet-mode-hook 'paredit-mode)
   (add-hook 'emacs-lisp-mode-hook 'paredit-mode))
 
 (use-package show-paren-mode
+  :straight nil
   :config
   (show-paren-mode 1)
   (setq show-paren-delay 0))
 
 (show-paren-mode 1)
 
-(el-get-bundle rainbow-delimiters)
 (use-package rainbow-delimiters
   :init
   (require 'rainbow-delimiters nil)
@@ -533,43 +512,8 @@
   (add-hook 'racket-repl-mode-hook 'rainbow-delimiters-mode)
   (add-hook 'scheme-mode-hook 'rainbow-delimiters-mode))
 
-
-;; end of lisps
-
-;; elixir
-
-(add-to-list 'exec-path (runtime-path "elixir/bin"))
-
-(el-get-bundle elixir)
 (use-package elixir)
 
-;; erlang
-
-(setq load-path (cons (runtime-path "erlang/emacs") load-path))
-(require 'erlang-start)
-(setq erlang-root-dir (runtime-path "erlang"))
-(setq exec-path (cons (runtime-path "erlang/bin") exec-path))
-(setq erlang-man-root-dir (runtime-path "erlang/bin/man"))
-
-(use-package erlang
-  :mode (("\\.erl?$" . erlang-mode)
-	 ("rebar\\.config$" . erlang-mode)
-	 ("relx\\.config$" . erlang-mode)
-	 ("sys\\.config\\.src$" . erlang-mode)
-	 ("sys\\.config$" . erlang-mode)
-	 ("\\.config\\.src?$" . erlang-mode)
-	 ("\\.config\\.script?$" . erlang-mode)
-	 ("\\.hrl?$" . erlang-mode)
-	 ("\\.app?$" . erlang-mode)
-	 ("\\.app.src?$" . erlang-mode)
-	 ("\\Emakefile" . erlang-mode)))
-
-
-;; go
-
-(add-to-list 'exec-path (runtime-path "go/bin"))
-
-(el-get-bundle go-mode)
 (use-package go-mode
   :config
   (add-hook 'go-mode-hook
@@ -577,11 +521,6 @@
 	      (setq indent-tabs-mode 1
 		    tab-width 4))))
 
-
-;; ocaml
-(add-to-list 'exec-path (runtime-path "ocaml/bin"))
-
-(el-get-bundle tuareg-mode)
 (use-package tuareg-mode
   :mode ("\\.ml[ily]?$" . tuareg-mode)
   :config
@@ -602,14 +541,8 @@
   (:map tuareg-mode-map
 	("C-c C-c" . compile)))
 
-
-;; javascript
-(add-to-list 'auto-mode-alist '("\\.js\\'" . js-mode))
-
-(add-to-list 'exec-path (lib-path "node/bin"))
-
-(setq js-indent-level 2)
 (use-package js-mode
+  :straight nil
   :init
   (add-to-list 'auto-mode-alist '("\\.js\\'" . js-mode))
   :config
@@ -617,42 +550,22 @@
 
 (setq css-indent-offset 2)
 
-(el-get-bundle leafOfTree/svelte-mode :name svelte-mode)
 (use-package svelte-mode
   :config
   (setq svelte-basic-offset 2))
-
-;; python
-
-(add-to-list 'exec-path (lib-path "python/bin"))
-(add-to-list 'exec-path (runtime-path "python/bin"))
 
 (use-package python-mode
   :interpreter "python"
   :config
   (setq python-indent-offset 4))
 
-;; ruby
-
-(add-to-list 'exec-path (runtime-path "ruby/bin"))
-
-(el-get-bundle inf-ruby)
-
 (use-package ruby-mode
   :config
   (add-hook 'ruby-mode-hook 'inf-ruby-minor-mode))
 
-(el-get-bundle dgutov/robe :name robe)
+(use-package inf-ruby)
 (use-package robe)
 
-
-;; rust
-
-(setenv "RUSTUP_TOOLCHAIN" "stable")
-(setenv "RUST_TARGET_DIR" (lib-path "rust/cargo/target"))
-
-(add-to-list 'exec-path (lib-path "rust/cargo/bin"))
-(el-get-bundle rust-mode)
 (use-package rust-mode
   :mode ("\\.rs$" . rust-mode)
   :config
@@ -671,56 +584,24 @@
 	("C-c C-l" . rust-run-clippy)
 	("C-c C-d" . eldoc-print-current-symbol-info)))
 
-;; dirty formats
-
-(el-get-bundle yaml-mode)
 (use-package yaml-mode)
-
-;; markdown
-(el-get-bundle markdown-mode)
 (use-package markdown-mode)
-
-;; graphql
-(el-get-bundle davazp/graphql-mode :name graphql-mode)
 (use-package graphql-mode)
 
-(el-get-bundle any-ini-mode)
 (use-package any-ini-mode
   :config
   (add-to-list 'auto-mode-alist '(".*\\.conf$" . any-ini-mode)))
 
-;; toml-mode
-
-(el-get-bundle dryman/toml-mode.el :name toml-mode)
 (use-package toml-mode
   :config
   (add-to-list 'auto-mode-alist '(".*\\.toml$" . any-ini-mode)))
 
-(el-get-bundle xcezx/blockdiag-mode :blockdiag)
-(use-package blockdiag)
-
-;; flutter
-(el-get-bundle bradyt/dart-mode :name dart-mode)
 (use-package dart-mode)
 
-(el-get-bundle amake/flutter.el :name flutter)
-(use-package flutter
-  :after dart-mode
-  :bind (:map dart-mode-map
-              ("C-M-x" . #'flutter-run-or-hot-reload)))
-
-
-;; flymake
-
-(custom-set-faces
- '(flymake-errline ((((class color)) (:underline "red"))))
- '(flymake-warnline ((((class color)) (:underline "yellow")))))
+;; compilation
 
 (global-set-key (kbd "C-c n") 'flymake-goto-next-error)
 (global-set-key (kbd "C-c p") 'flymake-goto-prev-error)
-
-
-;; compilation
 
 (use-package compile
   :no-require
@@ -750,22 +631,14 @@
 
   :hook (compilation-filter . compilation-ansi-color-process-output))
 
-
-;; xref
-
 (use-package xref
+  :straight nil
   :bind (("M-." . #'xref-find-definitions)
          ("M-/" . #'xref-go-back)
          ("M-r" . #'xref-find-references)))
 
-;; lsp
-
-(add-to-list 'exec-path (lib-path "lsp"))
-(add-to-list 'exec-path (lib-path "lsp/elixir-ls"))
-
-;;(el-get-bundle external-completion)
-
 (use-package eglot
+  :straight nil
   :config
   (setq eglot-send-changes-idle-time (* 60 60))
   ;;(add-to-list 'eglot-stay-out-of 'flymake)
@@ -799,16 +672,13 @@
   (interactive)
   (eglot-ensure))
 
-;; tree-sitter
-
 (use-package tree-sitter
+  :straight nil
   :config
   (require 'tree-sitter-langs)
   (global-tree-sitter-mode)
   (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode))
 
-
-;; project
 (use-package vc
   :config
   (setq vc-mistrust-permissions t
@@ -818,26 +688,13 @@
         vc-consult-headers nil
         vc-make-backup-files t))
 
-(el-get-bundle sshaw/git-link :name git-link)
 (use-package git-link)
-(el-get-bundle dash)
-(el-get-bundle magit/transient :name transient)
-(el-get-bundle with-editor)
-
-(add-to-list 'load-path "~/lib/emacs/el-get/with-editor/lisp")
-
-(el-get-bundle transient)
+(use-package dash)
+(use-package with-editor)
 (use-package transient
      :config
      (setq transient-hide-during-minibuffer-read t
 	   transient-show-popup 0.1))
-
-(el-get-bundle magit/magit
-  :name magit
-  :depends (dash transient with-editor)
-  :pkgname "magit/magit"
-  :load-path "lisp/"
-  :compile "lisp/")
 
 (use-package magit
   :init
@@ -869,12 +726,12 @@
    ("C-c d" . magit-diff-buffer-file)
    ("C-c D" . magit-diff)))
 
-(el-get-bundle magit-filenotify)
 (use-package magit-filenotify
   :config
   (add-hook 'magit-status-mode-hook 'magit-filenotify-mode))
 
 (use-package project
+  :straight nil
   :config
   (setq project-vc-extra-root-markers '(".git" ".project")
 	project-list-file "~/.emacs.d/projects")
@@ -890,13 +747,10 @@
 
 (global-set-key (kbd "C-x p") 'project-switch-project)
 
-
-(el-get-bundle Wilfred/deadgrep :name deadgrep)
 (use-package deadgrep
    :bind (("C-c g" . #'deadgrep)))
 
 (add-hook 'deadgrep-mode-hook #'highline-mode-on)
-
 (global-set-key (kbd "C-c g") 'deadgrep)
 
 ;; crypto
@@ -909,17 +763,13 @@
       starttls-extra-arguments '("--starttls" "--insecure"))
 
 (use-package epa-file
-  :init
-  (epa-file-enable)
+  :straight nil
   :config
   (setq epg-gpg-program "/usr/bin/gpg2"
 	epa-pinentry-mode 'loopback))
 
-(el-get-bundle walseb/espy :name espy)
 (use-package espy)
 
-;; shell
-(add-to-list 'exec-path "/usr/local/bin")
 (use-package shell
   :config
   (progn
@@ -927,6 +777,7 @@
 
 (use-package comint
   :defer t
+  :straight nil
   :config
   (progn
     (setf comint-prompt-read-only t
@@ -939,15 +790,15 @@
 		  (kbd "C-r")
 		  'comint-history-isearch-backward-regexp)))))
 
-(el-get-bundle bash-completion)
 (use-package bash-completion
   :disabled t
   :init
   (bash-completion-setup))
 
-;; org-mode
+;; ;; org-mode
 
 (use-package org
+  :straight nil
   :mode ("\\.org\\'" . org-mode)
   :bind (:map org-mode-map
 	      ("C-c C-w" . org-refile)
@@ -976,6 +827,7 @@
     (define-key org-mode-map [S-left]  'windmove-left)))
 
 (use-package ob
+  :straight nil
   :init
   (require 'ob)
   :config
@@ -991,8 +843,8 @@
 	      (when org-inline-image-overlays
 		(org-redisplay-inline-images)))))
 
-
 (use-package org-src
+  :straight nil
   :config
     (setq org-src-fontify-natively t
 	  org-src-tab-acts-natively t
@@ -1002,22 +854,15 @@
 	  org-inline-image-overlays t))
 
 (use-package org-crypt
+  :straight nil
   :config
   (progn
     (org-crypt-use-before-save-magic)
     (setq org-tags-exclude-from-inheritence '("crypt")
 	  org-crypt-key nil)))
 
-(el-get-bundle jakebox/org-preview-html
-  :name org-preview-html)
-(use-package org-preview-html
-  :bind (:map org-mode-map
-	      ("C-c C-e" . org-preview-html/preview))
-  :config
-  (setq org-preview-html/htmlfilename
-	(concat "/tmp/" (make-temp-name "-") ".html")))
-
 (use-package org-agenda
+  :straight nil
   :config
   (bind-key "C-c a" 'org-agenda)
   (setq org-use-fast-todo-selection t
@@ -1045,16 +890,13 @@
 
 (require 'org-tempo)
 
-;; web
+;; ;; web
 
-(el-get-bundle hniksic/emacs-htmlize
-  :name htmlize)
 (use-package htmlize)
 
-(use-package shrface
+(use-package shr
+  :straight nil
   :config
-  (shrface-basic)
-  (shrface-trial)
   (setq shr-inhibit-images t
 	shr-width 72
 	shr-use-fonts nil
@@ -1064,8 +906,9 @@
 	shr-image-animate nil
 	shr-color-visible-luminance-min 80))
 
-(el-get-bundle ace-link)
+(use-package ace-link)
 (use-package eww
+  :straight nil
   :preface
   (defun eww-toggle-image ()
     (interactive)
@@ -1086,7 +929,6 @@
 	("o" . eww-browse-with-external-browser)
 	("l" . ace-link-eww))
   :config
-  (require 'shrface)
   (setq eww-form-checkbox-symbol "[ ]"
 	eww-form-checkbox-selected-symbol "[X]"
 	eww-search-prefix  "https://lite.duckduckgo.com/lite/?q="
@@ -1112,9 +954,8 @@
   (let ((filename (buffer-file-name)))
     (browse-url (concat "file://" filename))))
 
-;; tramp
-
 (use-package tramp
+  :straight nil
   :config
   (setq tramp-default-method "ssh"
 	tramp-auto-save-directory "~/.emacs.d/var/tramp"
@@ -1127,11 +968,6 @@
     (add-to-list 'tramp-default-proxies-alist
 		 '((regexp-quote (system-name)) nil nil))))
 
-
-;; help
-
-(el-get-bundle kai2nenobu/guide-key
-  :name guide-key)
 (use-package guide-key
   :init (guide-key-mode 1)
   :config
@@ -1142,7 +978,4 @@
     (setq guide-key/guide-key-sequence
           `("C-c" "C-x" "C-h"))))
 
-;; writing stuff
-
 (defalias 'yes-or-no-p 'y-or-n-p)
-(load-file "~/.emacs.d/icylisper.el")
