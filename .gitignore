@@ -6,3 +6,5 @@ etc
 custom.el
 transient
 auto-save-list
+straight
+projects

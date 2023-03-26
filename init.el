@@ -3,41 +3,9 @@
 
 (require 'cl-lib)
 
-;;(toggle-debug-on-error)
-
-;; opinionated paths
-
-(defun runtime-path (dir)
-  (expand-file-name dir "~/runtime"))
-
-(defun lib-path (bin)
-  (expand-file-name bin "~/lib"))
+(toggle-debug-on-error)
 
 (add-to-list 'custom-theme-load-path "~/.emacs.d/themes")
-
-(setq exec-path `("/usr/local/bin"
-		  "/usr/bin"
-		  "/bin"
-		  "/usr/local/sbin"
-		  ,(runtime-path "clojure/bin")
-		  ,(runtime-path "ruby/bin")
-		  ,(runtime-path "python/bin")
-		  ,(runtime-path "ocaml/bin")
-		  ,(runtime-path "racket/bin")
-		  ,(runtime-path "go/bin")
-		  ,(runtime-path "elixir/bin")
-		  ,(runtime-path "janet/bin")
-		  ,(runtime-path "java/bin")
-		  ,(lib-path "rust/cargo/bin")
-		  ,(lib-path "lsp")
-		  ,(lib-path "node/bin")
-		  ,(lib-path "python/bin")
-		  ,(lib-path "lsp/elixir-ls")))
-
-;; env variables
-(setenv "RUSTUP_TOOLCHAIN" "stable")
-(setenv "RUST_TARGET_DIR" (lib-path "rust/cargo/target"))
-(setenv "JAVA_HOME" (runtime-path "java"))
 
 (setq straight-repository-branch "develop")
 
@@ -78,6 +46,10 @@
 (use-package async)
 (use-package pcre2el)
 (use-package queue)
+
+(use-package load-env-vars
+  :init
+  (load-env-vars "/home/icylisper/.bash_env"))
 
 (setq warning-minimum-level :emergency
       initial-scratch-message ";; happy hacking")
@@ -120,8 +92,6 @@
       use-dialog-box nil
       visible-bell nil)
 
-;; disable mouse
-;;(el-get-bundle purcell/disable-mouse :name disable-mouse)
 (use-package disable-mouse
   :diminish disable-mouse-global-mode
   :delight disable-mouse-global-mode
@@ -133,14 +103,9 @@
 (when (file-exists-p custom-file)
   (load custom-file))
 
-
 (defun unfringe ()
   (interactive)
   (set-face-attribute 'fringe nil :background nil))
-
-(set-face-attribute 'variable-pitch nil :font "inconsolata" :height 148)
-;;(set-frame-font "hasklig 12" nil t)
-(set-frame-font "monaco 10" nil t)
 
 (defvar theme-hooks nil)
 
@@ -162,8 +127,6 @@
 	(`(,_ . ,f) (funcall f))))))
 
 (advice-add 'load-theme :around #'load-theme-advice)
-
-;; modeline
 
 (use-package smart-mode-line
   :init
@@ -190,8 +153,6 @@
   :config
   (display-battery-mode))
 
-;; window
-
 (setq window-combination-resize t
       resize-mini-windows nil
       max-mini-window-height 1)
@@ -209,8 +170,6 @@
   (bind-key [M-up] 'windmove-up)
   (bind-key [M-down]  'windmove-down))
 
-
-;; buffer
 
 (setq fill-column 80
       next-line-add-newlines nil
@@ -248,7 +207,6 @@
     (set-buffer "*Buffer List*")
     (highline-mode-on))))
 
-;; ;; swap-buffers
 (defun swap-buffers ()
   "Put the buffer from the selected window in next window, and vice versa."
   (interactive)
@@ -270,7 +228,6 @@
 
 (use-package whole-line-or-region)
 
-;; minibuffer
 (setq enable-recursive-minibuffers t
       resize-mini-windows nil)
 (file-name-shadow-mode)
@@ -337,14 +294,12 @@
 
 (defun max-completions-height (buffer)
   (if (string= (buffer-name buffer) "*Completions*")
-      16
+      24
     (funcall old-max-height-function temp-buffer-max-height)))
 
 (setq temp-buffer-max-height #'max-completions-height)
 (temp-buffer-resize-mode)
 
-
-;; ;; dired
 (use-package wdired
   :init
   (require 'highline)
@@ -413,7 +368,7 @@
   :config
   (add-to-list 'slime-contribs 'slime-fancy)
   (slime-setup '(slime-asdf slime-banner slime-fuzzy))
-  (setq inferior-lisp-program "/usr/local/bin/sbcl --dynamic-space-size 1024"
+  (setq inferior-lisp-program "sbcl --dynamic-space-size 1024"
 	slime-net-encoding-system 'utf-8-unix
 	slime-complete-symbol-function 'slime-fuzzy-complete-symbol
 	slime-startup-animation t))
@@ -471,7 +426,7 @@
     (add-hook 'racket-mode-hook
         (lambda ()
           (push '("lambda" . ?λ) prettify-symbols-alist)))
-    (setq racket-program (runtime-path "racket/bin/racket")
+    (setq racket-program "racket"
 	  racket-images-inline t
 	  tab-always-indent 'complete
 	  comint-prompt-read-only t))
@@ -600,6 +555,8 @@
 
 ;; compilation
 
+(use-package flymake :straight nil)
+
 (global-set-key (kbd "C-c n") 'flymake-goto-next-error)
 (global-set-key (kbd "C-c p") 'flymake-goto-prev-error)
 
@@ -644,7 +601,7 @@
   ;;(add-to-list 'eglot-stay-out-of 'flymake)
   (add-hook 'eglot-managed-mode-hook (lambda ()
 				       (eldoc-mode 1)
-				       (flymake-mode -1))))
+				       (flymake-mode 1))))
 
 (defclass eglot-rust-x-analyzer (eglot-lsp-server) ()
   :documentation "A custom class for rust-analyzer.")
@@ -753,6 +710,15 @@
 (add-hook 'deadgrep-mode-hook #'highline-mode-on)
 (global-set-key (kbd "C-c g") 'deadgrep)
 
+
+(use-package escreen)
+
+(global-unset-key "\C-\\")
+(global-set-key (kbd "C-\\ c") 'escreen-create-screen)
+(global-set-key (kbd "C-\\ k") 'escreen-kill-screen)
+(global-set-key [C-right] 'escreen-goto-next-screen)
+(global-set-key [C-left]  'escreen-goto-prev-screen)
+
 ;; crypto
 (setq auth-source-debug t
       auth-source-do-cache nil
@@ -794,8 +760,6 @@
   :disabled t
   :init
   (bash-completion-setup))
-
-;; ;; org-mode
 
 (use-package org
   :straight nil
@@ -932,13 +896,10 @@
   (setq eww-form-checkbox-symbol "[ ]"
 	eww-form-checkbox-selected-symbol "[X]"
 	eww-search-prefix  "https://lite.duckduckgo.com/lite/?q="
-	eww-download-directory "~/data/downloads"
-	eww-bookmarks-directory "~/data/bookmarks"
 	eww-history-limit 150
 	eww-header-line-format "%u"
 	eww-browse-url-new-window-is-tab nil)
   (add-hook 'eww-mode 'ace-link-mode))
-
 
 (defun buffer-exists (bufname)
   (not (eq nil (get-buffer bufname))))
@@ -971,7 +932,7 @@
 (use-package guide-key
   :init (guide-key-mode 1)
   :config
-  (progn
+      (progn
     (setq guide-key/idle-delay 1)
     (setq guide-key/recursive-key-sequence-flag t)
     (setq guide-key/popup-window-position 'bottom)
@@ -979,3 +940,9 @@
           `("C-c" "C-x" "C-h"))))
 
 (defalias 'yes-or-no-p 'y-or-n-p)
+
+(defun load-if-exists (file)
+  (when (file-exists-p file)
+    (load-file file)))
+
+(load-if-exists (concat "~/.emacs.d/" (user-login-name) ".el"))
