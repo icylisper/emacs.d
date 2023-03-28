@@ -514,6 +514,8 @@
   :config
   (setq python-indent-offset 4))
 
+(use-package poetry)
+
 (use-package ruby-mode
   :config
   (add-hook 'ruby-mode-hook 'inf-ruby-minor-mode))
