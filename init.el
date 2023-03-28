@@ -941,6 +941,11 @@
     (setq guide-key/guide-key-sequence
           `("C-c" "C-x" "C-h"))))
 
+;; ssh
+(use-package keychain-environment)
+(keychain-refresh-environment)
+
+
 (defalias 'yes-or-no-p 'y-or-n-p)
 
 (defun load-if-exists (file)
