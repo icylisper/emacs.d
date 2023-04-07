@@ -300,6 +300,39 @@
 (setq temp-buffer-max-height #'max-completions-height)
 (temp-buffer-resize-mode)
 
+
+(use-package hippie-exp
+  :init
+  ;; force hippie-expand completions to be case-sensitive
+  (defadvice hippie-expand (around hippie-expand-case-fold activate)
+    "Try to do case-sensitive matching (not effective with all functions)."
+    (let ((case-fold-search nil))
+      ad-do-it))
+  :config
+  (setq hippie-expand-try-functions-list
+	'(try-expand-dabbrev
+	  try-expand-dabbrev-all-buffers
+	  try-expand-dabbrev-from-kill
+	  try-expand-all-abbrevs
+	  try-expand-list
+	  try-expand-line
+	  try-complete-lisp-symbol-partially
+	  try-complete-lisp-symbol)))
+
+(defun smart-tab ()
+  (interactive)
+  (if (minibufferp)
+      (unless (minibuffer-complete)
+        (hippie-expand nil))
+    (if mark-active
+        (indent-region (region-beginning)
+                       (region-end))
+      (if (looking-at "\\_>")
+          (hippie-expand nil)
+        (indent-for-tab-command)))))
+(global-set-key (kbd "TAB") 'smart-tab)
+
+
 (use-package wdired
   :init
   (require 'highline)
@@ -519,6 +552,16 @@
 (use-package ruby-mode
   :config
   (add-hook 'ruby-mode-hook 'inf-ruby-minor-mode))
+
+(defun hippie-expand-ruby-symbols (orig-fun &rest args)
+  (if (eq major-mode 'ruby-mode)
+      (let ((table (make-syntax-table ruby-mode-syntax-table)))
+        (modify-syntax-entry ?: "." table)
+        (with-syntax-table table (apply orig-fun args)))
+    (apply orig-fun args)))
+
+(advice-add 'hippie-expand :around #'hippie-expand-ruby-symbols)
+
 
 (use-package inf-ruby)
 (use-package robe)
@@ -856,6 +899,8 @@
 
 (require 'org-tempo)
 
+(use-package deft)
+
 ;; ;; web
 
 (use-package htmlize)
@@ -945,6 +990,7 @@
 (use-package keychain-environment)
 (keychain-refresh-environment)
 
+(use-package terraform-mode)
 
 (defalias 'yes-or-no-p 'y-or-n-p)
 
@@ -953,3 +999,8 @@
     (load-file file)))
 
 (load-if-exists (concat "~/.emacs.d/" (user-login-name) ".el"))
+
+(set-face-attribute 'variable-pitch nil :font "inconsolata" :height 148)
+;;(set-frame-font "hasklig 14" nil t)
+(set-frame-font "monaco 10" nil t)
+(put 'upcase-region 'disabled nil)
