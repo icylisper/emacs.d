@@ -771,13 +771,6 @@
 (global-set-key (kbd "C-c g") 'deadgrep)
 
 
-(use-package escreen)
-
-(global-unset-key "\C-\\")
-(global-set-key (kbd "C-\\ c") 'escreen-create-screen)
-(global-set-key (kbd "C-\\ k") 'escreen-kill-screen)
-(global-set-key [C-right] 'escreen-goto-next-screen)
-(global-set-key [C-left]  'escreen-goto-prev-screen)
 
 ;; crypto
 (setq auth-source-debug t
@@ -914,8 +907,6 @@
 
 (require 'org-tempo)
 
-(use-package deft)
-
 ;; ;; web
 
 (use-package htmlize)
@@ -1000,12 +991,6 @@
     (setq guide-key/popup-window-position 'bottom)
     (setq guide-key/guide-key-sequence
           `("C-c" "C-x" "C-h"))))
-
-;; ssh
-(use-package keychain-environment)
-(keychain-refresh-environment)
-
-(use-package terraform-mode)
 
 (defalias 'yes-or-no-p 'y-or-n-p)
 
