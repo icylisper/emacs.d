@@ -633,6 +633,21 @@
 
   :hook (compilation-filter . compilation-ansi-color-process-output))
 
+;; tags
+
+(defvar tags-project-alist nil)
+
+(defun load-tags (project)
+  (interactive (list (completing-read "Project: " tags-project-alist)))
+  (tags-reset-tags-tables)
+  (let ((tags-file (alist-get (intern project) tags-project-alist)))
+    (visit-tags-table tags-file)
+    (setf tags-table-list `(,tags-file)))
+  (message "Loaded tags"))
+
+(global-set-key (kbd "C-c t") 'find-tag)
+(global-set-key (kbd "C-c p") 'load-tags)
+
 (use-package xref
   :straight nil
   :bind (("M-." . #'xref-find-definitions)
