@@ -47,9 +47,6 @@
 (use-package pcre2el)
 (use-package queue)
 
-(use-package load-env-vars
-  :init
-  (load-env-vars "/home/icylisper/.bash_env"))
 
 (setq warning-minimum-level :emergency
       initial-scratch-message ";; happy hacking")
