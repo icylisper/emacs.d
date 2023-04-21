@@ -791,6 +791,12 @@
   (progn
     (setq explicit-shell-file-name "bash")))
 
+(use-package multi-term
+  :config
+  (setq multi-term-program-switches "--login")
+  :bind
+  (("C-x RET" . multi-term)))
+
 (use-package comint
   :defer t
   :straight nil
