@@ -159,6 +159,7 @@
   (bind-key "C-x o" 'ace-window))
 
 (use-package windmove
+  :straight nil
   :config
   (windmove-default-keybindings 'shift)
   (setq windmove-wrap-around t)
@@ -166,6 +167,7 @@
   (bind-key [M-left]  'windmove-left)
   (bind-key [M-up] 'windmove-up)
   (bind-key [M-down]  'windmove-down))
+
 
 
 (setq fill-column 80
@@ -198,7 +200,7 @@
   (require 'highline)
   (defun highline-mode-on () (highline-mode 1))
   :config
-  (bind-key (kbd "C-h C-i") 'highline-mode)
+  ;(bind-key (kbd "C-h C-i") 'highline-mode)
   (defadvice list-buffers (after highlight-line activate)
   (save-excursion
     (set-buffer "*Buffer List*")
@@ -297,8 +299,11 @@
 (setq temp-buffer-max-height #'max-completions-height)
 (temp-buffer-resize-mode)
 
+;; expanding
 
-(use-package hippie-exp
+
+(use-package hippie-expand
+  :straight nil
   :init
   ;; force hippie-expand completions to be case-sensitive
   (defadvice hippie-expand (around hippie-expand-case-fold activate)
@@ -316,6 +321,8 @@
 	  try-complete-lisp-symbol-partially
 	  try-complete-lisp-symbol)))
 
+(global-set-key [remap dabbrev-expand] 'hippie-expand)
+
 (defun smart-tab ()
   (interactive)
   (if (minibufferp)
@@ -328,6 +335,7 @@
           (hippie-expand nil)
         (indent-for-tab-command)))))
 (global-set-key (kbd "TAB") 'smart-tab)
+
 
 
 (use-package wdired
@@ -642,6 +650,13 @@
     (setf tags-table-list `(,tags-file)))
   (message "Loaded tags"))
 
+(defun build-tags (project)
+  (interactive (list (completing-read "Project: " tags-project-alist)))
+  (let ((tags-file (alist-get (intern project) tags-project-alist)))
+    (async-shell-command (concat "cat " tags-file)))
+  (message "Built tags"))
+
+
 (global-set-key (kbd "C-c t") 'find-tag)
 (global-set-key (kbd "C-c p") 'load-tags)
 
@@ -761,8 +776,17 @@
 
 (global-set-key (kbd "C-x p") 'project-switch-project)
 
+;; workspaces
+(use-package project-tab-groups
+  :config
+  (project-tab-groups-mode 1)
+  (setq tab-bar-show nil))
+
+(global-set-key (kbd "M-S right") 'tab-bar-switch-to-next)
+(global-set-key (kbd "M-S left") 'tab-bar-switch-to-previous)
+
 (use-package deadgrep
-   :bind (("C-c g" . #'deadgrep)))
+  :bind (("C-c g" . #'deadgrep)))
 
 (add-hook 'deadgrep-mode-hook #'highline-mode-on)
 (global-set-key (kbd "C-c g") 'deadgrep)
@@ -793,7 +817,8 @@
 
 (use-package multi-term
   :config
-  (setq multi-term-program-switches "--login")
+  (setq multi-term-program-switches "--login"
+	multi-term-program "/bin/bash")
   :bind
   (("C-x RET" . multi-term)))
 
@@ -910,6 +935,7 @@
 
 (require 'org-tempo)
 
+
 ;; ;; web
 
 (use-package htmlize)
@@ -1001,9 +1027,9 @@
   (when (file-exists-p file)
     (load-file file)))
 
-(load-if-exists (concat "~/.emacs.d/" (user-login-name) ".el"))
-
-(set-face-attribute 'variable-pitch nil :font "inconsolata" :height 148)
+(set-face-attribute 'variable-pitch nil :font "inconsolata" :height 141)
 ;;(set-frame-font "hasklig 14" nil t)
 (set-frame-font "monaco 10" nil t)
 (put 'upcase-region 'disabled nil)
+
+(load-if-exists (concat "~/.emacs.d/" (user-login-name) ".el"))
