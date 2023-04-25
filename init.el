@@ -301,25 +301,100 @@
 
 ;; expanding
 
+(defvar mode-specified-try-functions-table (make-hash-table))
 
-(use-package hippie-expand
-  :straight nil
-  :init
-  ;; force hippie-expand completions to be case-sensitive
-  (defadvice hippie-expand (around hippie-expand-case-fold activate)
-    "Try to do case-sensitive matching (not effective with all functions)."
-    (let ((case-fold-search nil))
-      ad-do-it))
-  :config
-  (setq hippie-expand-try-functions-list
-	'(try-expand-dabbrev
-	  try-expand-dabbrev-all-buffers
-	  try-expand-dabbrev-from-kill
-	  try-expand-all-abbrevs
-	  try-expand-list
-	  try-expand-line
-	  try-complete-lisp-symbol-partially
-	  try-complete-lisp-symbol)))
+(defun set-mode-specified-try-functions (mode functions)
+  (setf (gethash mode mode-specified-try-functions-table)
+	functions))
+
+(defun set-default-try-functions (functions)
+  (setf (gethash :default mode-specified-try-functions-table)
+	functions))
+
+(defun expand-try-functions-of (mode)
+  (let ((result
+	 (gethash mode mode-specified-try-functions-table)))
+    (if (listp result) result
+      (list result))))
+
+(defun current-hippie-expand-try-function-list ()
+  (remove-duplicates
+   (remove nil
+	   (append
+	    (apply
+	     'append
+	     (mapcar 'expand-try-functions-of minor-mode-list))
+	    (expand-try-functions-of major-mode)
+	    (expand-try-functions-of :default)))
+   :from-end t))
+
+(defadvice hippie-expand (around mode-specified-hippie-expand)
+  (let ((hippie-expand-try-functions-list
+	 (current-hippie-expand-try-function-list)))
+    ad-do-it))
+
+(defun enable-mode-specified-hippie-expand ()
+  (interactive)
+  (ad-enable-advice 'hippie-expand
+		    'around
+		    'mode-specified-hippie-expand)
+  (ad-activate 'hippie-expand))
+
+(defun disable-mode-specified-hippie-expand ()
+  (interactive)
+  (ad-disable-advice 'hippie-expand
+		     'around
+		     'mode-specified-hippie-expand)
+  (ad-deactivate 'hippie-expand))
+
+(set-default-try-functions
+ '(try-expand-dabbrev
+   try-expand-all-abbrevs
+   try-expand-dabbrev-all-buffers
+   try-expand-list
+   try-expand-line
+   try-expand-dabbrev-from-kill))
+
+(set-mode-specified-try-functions
+ 'emacs-lisp-mode
+ '(try-complete-lisp-symbol-partially
+   try-complete-lisp-symbol))
+
+(defun tags-complete-tag (string predicate what)
+  (save-excursion
+    ;; If we need to ask for the tag table, allow that.
+    (if (eq what t)
+	(all-completions string (tags-completion-table) predicate)
+      (try-completion string (tags-completion-table) predicate))))
+
+
+(defun he-tag-beg ()
+  (let ((p
+         (save-excursion
+           (backward-word 1)
+           (point))))
+    p))
+
+(defun try-expand-tag (old)
+  (unless  old
+    (he-init-string (he-tag-beg) (point))
+    (setq he-expand-list (sort
+                          (all-completions he-search-string 'tags-complete-tag) 'string-lessp)))
+  (while (and he-expand-list
+              (he-string-member (car he-expand-list) he-tried-table))
+              (setq he-expand-list (cdr he-expand-list)))
+  (if (null he-expand-list)
+      (progn
+        (when old (he-reset-string))
+        ())
+    (he-substitute-string (car he-expand-list))
+    (setq he-expand-list (cdr he-expand-list))
+    t))
+
+(set-mode-specified-try-functions
+ 'rust-mode
+ '(try-expand-tag
+   try-expand-dabbrev))
 
 (global-set-key [remap dabbrev-expand] 'hippie-expand)
 
@@ -335,8 +410,6 @@
           (hippie-expand nil)
         (indent-for-tab-command)))))
 (global-set-key (kbd "TAB") 'smart-tab)
-
-
 
 (use-package wdired
   :init
@@ -1028,8 +1101,8 @@
     (load-file file)))
 
 (set-face-attribute 'variable-pitch nil :font "inconsolata" :height 141)
-;;(set-frame-font "hasklig 14" nil t)
-(set-frame-font "monaco 10" nil t)
+(set-frame-font "hasklig 14" nil t)
+;;(set-frame-font "monaco 10" nil t)
 (put 'upcase-region 'disabled nil)
 
 (load-if-exists (concat "~/.emacs.d/" (user-login-name) ".el"))
