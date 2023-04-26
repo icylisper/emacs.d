@@ -544,6 +544,23 @@
 
 (use-package janet-mode)
 
+(straight-use-package
+ '(inf-janet
+   :type git
+   :host github
+   :repo "velkyel/inf-janet"))
+
+(use-package inf-janet
+  :straight nil
+  :config
+  (setq inf-janet-program "~/lib/janet/bin/janet -s")
+  :bind
+  (:map janet-mode-map
+	("C-x C-e" . inf-janet-eval-last-sexp)
+	("C-c C-e" . inf-janet-eval-last-sexp)
+	("C-c C-z" . inf-janet-switch-to-repl)
+	("C-M x" . inf-janet-eval-defun)))
+
 (use-package paredit
   :bind (("M-]" . paredit-forward-slurp-sexp)
 	 ("M-[" . paredit-backward-slurp-sexp)
