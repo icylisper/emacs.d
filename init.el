@@ -168,8 +168,6 @@
   (bind-key [M-up] 'windmove-up)
   (bind-key [M-down]  'windmove-down))
 
-
-
 (setq fill-column 80
       next-line-add-newlines nil
       require-final-newline nil
@@ -192,6 +190,7 @@
 (use-package undo-tree
   :init (global-undo-tree-mode)
   :config (setq
+	   undo-tree-auto-save-history nil
 	   undo-tree-visualizer-diff t
 	   undo-tree-visualizer-timestamps t))
 
@@ -391,10 +390,6 @@
     (setq he-expand-list (cdr he-expand-list))
     t))
 
-(set-mode-specified-try-functions
- 'rust-mode
- '(try-expand-tag
-   try-expand-dabbrev))
 
 (global-set-key [remap dabbrev-expand] 'hippie-expand)
 
@@ -597,6 +592,12 @@
 
 (use-package elixir)
 
+(straight-use-package
+ '(inf-iex
+   :type git
+   :host github
+   :repo "DogLooksGood/inf-iex"))
+
 (use-package go-mode
   :config
   (add-hook 'go-mode-hook
@@ -730,7 +731,7 @@
 
 ;; tags
 
-(defvar tags-project-alist nil)
+(defvar tags-projectb-alist nil)
 
 (defun load-tags (project)
   (interactive (list (completing-read "Project: " tags-project-alist)))
@@ -757,10 +758,10 @@
          ("M-r" . #'xref-find-references)))
 
 (use-package eglot
-  :straight nil
+  :straight t
   :config
   (setq eglot-send-changes-idle-time (* 60 60))
-  ;;(add-to-list 'eglot-stay-out-of 'flymake)
+  (add-to-list 'eglot-stay-out-of 'flymake)
   (add-hook 'eglot-managed-mode-hook (lambda ()
 				       (eldoc-mode 1)
 				       (flymake-mode 1))))
@@ -866,22 +867,11 @@
 
 (global-set-key (kbd "C-x p") 'project-switch-project)
 
-;; workspaces
-(use-package project-tab-groups
-  :config
-  (project-tab-groups-mode 1)
-  (setq tab-bar-show nil))
-
-(global-set-key (kbd "M-S right") 'tab-bar-switch-to-next)
-(global-set-key (kbd "M-S left") 'tab-bar-switch-to-previous)
-
 (use-package deadgrep
   :bind (("C-c g" . #'deadgrep)))
 
 (add-hook 'deadgrep-mode-hook #'highline-mode-on)
 (global-set-key (kbd "C-c g") 'deadgrep)
-
-
 
 ;; crypto
 (setq auth-source-debug t
